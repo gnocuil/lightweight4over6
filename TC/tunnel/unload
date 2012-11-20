@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo Unloading public4over6 module...
+sudo rmmod $CURDIR/public4over6.ko
