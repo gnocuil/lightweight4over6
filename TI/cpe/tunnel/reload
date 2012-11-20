@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export CURDIR=$(pwd)
+
+$CURDIR/unload
+$CURDIR/load

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export CURDIR=$(pwd)
+
+echo Unloading public4over6 module...
+rmmod $CURDIR/public4over6.ko
