@@ -1,0 +1,2 @@
+binddir=/home/gnocuil/git/dhcp/DHCPv4-over-v6/dhcp-4.2.3-P2/bind
+GMAKE=make

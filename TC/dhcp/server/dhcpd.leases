@@ -1,0 +1,65 @@
+# The format of this file is documented in the dhcpd.leases(5) manual page.
+# This lease file was written by isc-dhcp-4.2.3-P2
+
+server-duid "\000\001\000\001\0305>\375\010\000'\007@\027";
+
+lease 192.168.1.100 {
+  starts 2 2012/11/13 17:25:33;
+  ends 2 2012/11/13 17:35:33;
+  cltt 2 2012/11/13 17:25:33;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 08:00:27:f9:ff:df;
+  port-set 0x0800 0xf800;
+}
+lease 192.168.1.100 {
+  starts 2 2012/11/13 17:30:33;
+  ends 2 2012/11/13 17:40:33;
+  cltt 2 2012/11/13 17:30:33;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 08:00:27:f9:ff:df;
+  port-set 0x0800 0xf800;
+}
+lease 192.168.1.100 {
+  starts 2 2012/11/13 17:35:33;
+  ends 2 2012/11/13 17:45:33;
+  cltt 2 2012/11/13 17:35:33;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 08:00:27:f9:ff:df;
+  port-set 0x0800 0xf800;
+}
+lease 192.168.1.100 {
+  starts 2 2012/11/13 17:40:34;
+  ends 2 2012/11/13 17:50:34;
+  cltt 2 2012/11/13 17:40:34;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 08:00:27:f9:ff:df;
+  port-set 0x0800 0xf800;
+}
+lease 192.168.1.100 {
+  starts 2 2012/11/13 17:45:34;
+  ends 2 2012/11/13 17:55:34;
+  cltt 2 2012/11/13 17:45:34;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 08:00:27:f9:ff:df;
+  port-set 0x0800 0xf800;
+}
+lease 192.168.1.100 {
+  starts 2 2012/11/13 17:50:34;
+  ends 2 2012/11/13 18:00:34;
+  cltt 2 2012/11/13 17:50:34;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 08:00:27:f9:ff:df;
+  port-set 0x0800 0xf800;
+}

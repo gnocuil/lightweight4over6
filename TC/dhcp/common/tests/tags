@@ -1,0 +1,14 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+T_testlist	test_alloc.c	/^testspec_t T_testlist[] = {$/;"	v
+test_buffer_allocate	test_alloc.c	/^test_buffer_allocate(void) {$/;"	f	file:
+test_buffer_dereference	test_alloc.c	/^test_buffer_dereference(void) {$/;"	f	file:
+test_buffer_reference	test_alloc.c	/^test_buffer_reference(void) {$/;"	f	file:
+test_data_string_copy	test_alloc.c	/^test_data_string_copy(void) {$/;"	f	file:
+test_data_string_copy_nobuf	test_alloc.c	/^test_data_string_copy_nobuf(void) {$/;"	f	file:
+test_data_string_forget	test_alloc.c	/^test_data_string_forget(void) {$/;"	f	file:
+test_data_string_forget_nobuf	test_alloc.c	/^test_data_string_forget_nobuf(void) {$/;"	f	file:

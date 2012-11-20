@@ -1,0 +1,6 @@
+-4v6 -p 67 -f -4v6interface public4over6 eth1
+
+-4v6 means 4v6 mode
+-p 67 means listen on port 67
+-4v6interface public4over6 is the v4 adatper
+eth1 is the v6 adapter
