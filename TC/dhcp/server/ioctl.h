@@ -5,7 +5,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 
-#define TUNNEL_DEVICE_NAME "public4over6"
+#define TUNNEL_DEVICE_NAME "lw4over6"
 
 #define TUNNELMESSAGE SIOCDEVPRIVATE
 #define TUNNEL_MAPPING_NUM SIOCDEVPRIVATE+1//get the num of ecitems
@@ -18,7 +18,7 @@
 #define TUNNEL_GET_BINDING SIOCDEVPRIVATE+8//get the tunnel binded info and ipv6.
 #define TUNNEL_SET_BINDING SIOCDEVPRIVATE+9//set the tunnel to bind which interface.
 
-//public4over6 tunnel encapsulation item
+//lw4over6 tunnel encapsulation item
 struct ecitem
 {  
    struct in_addr remote;
