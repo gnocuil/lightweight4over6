@@ -14,7 +14,7 @@
 #include <netinet/ip.h>  //struct ip
 #include <netinet/ip6.h> //struct ip6_hdr
 #define BUFFLEN 1501
-#define TUNNEL_IFNAME "public4over6"
+//#define TUNNEL_IFNAME "lw4over6"
 
 struct udp6_psedoheader {
         uint8_t srcaddr[16];
@@ -33,7 +33,7 @@ struct udp4_psedoheader {
 };
 
 
-
+char TUNNEL_IFNAME[20];
 char PHYSIC_IFNAME[20];
 
 struct ifreq ifopt;

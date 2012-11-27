@@ -6,13 +6,13 @@
 #include <linux/etherdevice.h>
 
 #include <net/icmp.h>
-#include "public4over6.h"
+#include "lw4over6.h"
 
 
-//#define DEBUG_PUBLIC4OVER6_
+//#define DEBUG_LW4OVER6_
 
 
-#ifdef DEBUG_PUBLIC4OVER6_
+#ifdef DEBUG_LW4OVER6_
 #define CDBG(msg,args...) printk(KERN_DEBUG msg,##args)
 #else
 #define CDBG(msg,args...) {}
@@ -33,8 +33,8 @@ char* inet_ntoa( struct in_addr in, char *buf, size_t *rlen);
 int xmit( struct sk_buff *skb, struct in6_addr out_addr,struct net_device *dev);
 char* inet_ntop_v6(struct in6_addr,char *dst);
 void inet_pton_v6(char *,struct in6_addr *);
-static int public4over6_change_mtu(struct net_device* dev,int new_mtu);
-static void public4over6_setup(struct net_device *dev);
+static int lw4over6_change_mtu(struct net_device* dev,int new_mtu);
+static void lw4over6_setup(struct net_device *dev);
 
 static struct net_device *netdev;
 
@@ -210,8 +210,8 @@ handle_ping(char* ipv4header)
    if we use the way of invoking xmit() to send the package,
    then we still need some changes.
 */
-int public4over6_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
-{printk("<7> [liucong]public4over6_tunnel_xmit! skb->protocol=%04x skb->len=%d", htons(skb->protocol),skb->len);
+int lw4over6_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
+{printk("<7> [liucong]lw4over6_tunnel_xmit! skb->protocol=%04x skb->len=%d", htons(skb->protocol),skb->len);
 printk("<7> [liucong]data_len=%d\n", htons(skb->data_len));
 printk("<7> [liucong]mac_len=%d\n", (skb->mac_len));
 printk("<7> [liucong]mac_header=%x\n", (skb->mac_header));
@@ -238,22 +238,22 @@ printk("<7> [liucong]mac_header=%x\n", (skb->mac_header));
     
     if (skb->protocol!= htons(ETH_P_IP)) //judgement of IP protocol
     {
-    	CDBG("[public 4over6 tunnel]:this is not IPv4 protocol!\n");
-	CDBG("[public 4over6 tunnel]:this is not IPv4 protocol this is %d!\n",ntohs(skb->protocol));
+    	CDBG("[lw 4over6 tunnel]:this is not IPv4 protocol!\n");
+	CDBG("[lw 4over6 tunnel]:this is not IPv4 protocol this is %d!\n",ntohs(skb->protocol));
         goto tx_error;
     }
 
     //for debug information
-    #ifdef DEBUG_PUBLIC4OVER6_
+    #ifdef DEBUG_LW4OVER6_
     inet_ntoa(saddr,buf,NULL);
-    CDBG("[public 4over6 tunnel]:the source IPv4 address is %s!\n",buf);
+    CDBG("[lw 4over6 tunnel]:the source IPv4 address is %s!\n",buf);
     inet_ntoa(daddr,buf,NULL);
-    CDBG("[public 4over6 tunnel]:the destination IPv4 address is %s!\n",buf);
+    CDBG("[lw 4over6 tunnel]:the destination IPv4 address is %s!\n",buf);
     #endif
 
 
     if (get_portNum_dest(skb) == 67) {
-         CDBG("[public 4over6 tunnel]: Drop all dhcp packet!!!!!\n");
+         CDBG("[lw 4over6 tunnel]: Drop all dhcp packet!!!!!\n");
          return 0;
     }    
 
@@ -262,7 +262,7 @@ printk("<7> [liucong]mac_header=%x\n", (skb->mac_header));
     //inet_pton_v6(remote,&(ect->remote6));
     if (ect==0)
     {
-        CDBG("[public 4over6 tunnel]: Can not find data destination in ECT!\n");
+        CDBG("[lw 4over6 tunnel]: Can not find data destination in ECT!\n");
         goto tx_error;
     }
 
@@ -323,7 +323,7 @@ printk("<7> [liucong]mac_header=%x\n", (skb->mac_header));
 
      if (!skb_dst(skb))
      {
-       CDBG("[public 4over6 tunnel]:Cannot find route information for packet!\n");
+       CDBG("[lw 4over6 tunnel]:Cannot find route information for packet!\n");
        goto tx_error;
      }
      else
@@ -351,14 +351,14 @@ tx_error :
 
 
 
-void public4over6_err( struct sk_buff* skb,struct inet6_skb_parm* opt,int type,int code,int offset,__u32 info)
+void lw4over6_err( struct sk_buff* skb,struct inet6_skb_parm* opt,int type,int code,int offset,__u32 info)
 {
-    CDBG("[public 4over6 tunnel]:IP6IP Error! (type=%d, code=%d, offset=%d).\n",type,code,offset);
+    CDBG("[lw 4over6 tunnel]:IP6IP Error! (type=%d, code=%d, offset=%d).\n",type,code,offset);
 }
 
 //IOCTL function
-int public4over6_ioctl(struct net_device *dev,struct ifreq *ifr,int cmd)
-{printk("<7> [liucong]public4over6_ioctl!");
+int lw4over6_ioctl(struct net_device *dev,struct ifreq *ifr,int cmd)
+{printk("<7> [liucong]lw4over6_ioctl!");
     tunnel_info_t tunnelinfo;
     tunnel_info_t *p_tunnelinfo=NULL;
     portset_t *p_portset = NULL;
@@ -401,15 +401,15 @@ int public4over6_ioctl(struct net_device *dev,struct ifreq *ifr,int cmd)
          err=copy_from_user(&tunnelinfo,p_tunnelinfo,sizeof(tunnel_info_t));
          if(err)
          {
-            CDBG("[public 4over6 tunnel]:copy_from_user failed!\n");
+            CDBG("[lw 4over6 tunnel]:copy_from_user failed!\n");
             return err;
          }
-         public4over6_change_mtu(dev,p_tunnelinfo->mtu);
-         printk("[public 4over6 tunnel]:public4over6 mtu is set to %d!\n",mtu);
+         lw4over6_change_mtu(dev,p_tunnelinfo->mtu);
+         printk("[lw 4over6 tunnel]:lw4over6 mtu is set to %d!\n",mtu);
       }
       else
       {
-	 CDBG("[public 4over6 tunnel]:command type error!%d\n",tunnelinfo.type);
+	 CDBG("[lw 4over6 tunnel]:command type error!%d\n",tunnelinfo.type);
       }
     }
     else if (cmd == TUNNELPORTSET)
@@ -420,18 +420,18 @@ int public4over6_ioctl(struct net_device *dev,struct ifreq *ifr,int cmd)
     }
     else
     { 
-       CDBG("[public 4over6 tunnel]:command error!\n");
+       CDBG("[lw 4over6 tunnel]:command error!\n");
     }
     return 0;
 }
 
 
-static int public4over6_change_mtu(struct net_device* dev,int new_mtu)
+static int lw4over6_change_mtu(struct net_device* dev,int new_mtu)
 {
-    if((new_mtu<68)||(new_mtu>1500))
-    {
-       return -EINVAL;
-    }
+//    if((new_mtu<68)||(new_mtu>1500))
+//    {
+//       return -EINVAL;
+//    }
     dev->mtu = new_mtu;
     return 0;
 }
@@ -569,8 +569,8 @@ static inline void ip6ip_ecn_decapsulate(struct net_device* dev, struct ipv6hdr 
 }
 
 
-int public4over6_rcv( struct sk_buff *skb )
-{printk("<7> [liucong]public4over6_rcv! skb->len=%d", skb->len);
+int lw4over6_rcv( struct sk_buff *skb )
+{printk("<7> [liucong]lw4over6_rcv! skb->len=%d", skb->len);
 
     struct ipv6hdr* ipv6th;
     char buff[255];
@@ -578,14 +578,14 @@ int public4over6_rcv( struct sk_buff *skb )
     struct net_device *ndev=dev_get_by_name(dev_net(skb->dev),TUNNEL_DEVICE_NAME);  
     struct net_device_stats *stats=&ndev->stats;
     
-    CDBG("[public 4over6 tunnel]:receive packet:receiving!\n");
+    CDBG("[lw 4over6 tunnel]:receive packet:receiving!\n");
     stats->rx_packets++;
     stats->rx_bytes+=skb->len;
 
     if (!pskb_may_pull( skb, sizeof( struct ipv6hdr )))
     {
        stats->rx_errors++;  
-       CDBG("[public 4over6 tunnel]:receive packet: error decapsulating packet!\n");
+       CDBG("[lw 4over6 tunnel]:receive packet: error decapsulating packet!\n");
        dev_put(ndev);
        goto rcv_error;
     }
@@ -598,11 +598,11 @@ int public4over6_rcv( struct sk_buff *skb )
     }
     
     
-    #ifdef DEBUG_PUBLIC4OVER6_
+    #ifdef DEBUG_LW4OVER6_
     inet_ntop_v6(ipv6th->saddr, buff);
-    CDBG("[public 4over6 tunnel]:receive packet:the source address is %s.\n" ,buff);
+    CDBG("[lw 4over6 tunnel]:receive packet:the source address is %s.\n" ,buff);
     inet_ntop_v6(ipv6th->daddr,buff);
-    CDBG("[public 4over6 tunnel]:receive packet:the destination address is %s.\n" ,buff);
+    CDBG("[lw 4over6 tunnel]:receive packet:the destination address is %s.\n" ,buff);
     #endif
     
     skb_reset_network_header(skb);
@@ -612,7 +612,7 @@ int public4over6_rcv( struct sk_buff *skb )
     skb->dev =__dev_get_by_name( &init_net,TUNNEL_DEVICE_NAME);
     
     //for debug info only.
-    CDBG("[public 4over6 tunnel]:skb->len is %d,skb->data_len is %d,skb->hdr_len is %d,skb->mac_len is %d!\n",skb->len,skb->data_len,skb->hdr_len,skb->mac_len);
+    CDBG("[lw 4over6 tunnel]:skb->len is %d,skb->data_len is %d,skb->hdr_len is %d,skb->mac_len is %d!\n",skb->len,skb->data_len,skb->hdr_len,skb->mac_len);
     skb->hdr_len=14;
 
     //dst_release(skb->dst);
@@ -631,11 +631,11 @@ int public4over6_rcv( struct sk_buff *skb )
    err=netif_rx(skb);
    if (err)
    {
-      CDBG("[public 4over6 tunnel]:decaped packet is dropped!\n");
+      CDBG("[lw 4over6 tunnel]:decaped packet is dropped!\n");
       goto rcv_error;
    }
    else
-      CDBG("[public 4over6 tunnel]:finish decapsulating packet!\n" );
+      CDBG("[lw 4over6 tunnel]:finish decapsulating packet!\n" );
    return 0;
 rcv_error:
    dev_kfree_skb(skb);
@@ -645,8 +645,8 @@ rcv_error:
 
 
 static struct inet6_protocol ip6ip_protocol = {
-  .handler = public4over6_rcv,
-  .err_handler = public4over6_err,
+  .handler = lw4over6_rcv,
+  .err_handler = lw4over6_err,
   .flags = INET6_PROTO_NOPOLICY |INET6_PROTO_FINAL,
  };
 
@@ -656,21 +656,21 @@ static const struct net_device_ops ip6ip_netdev_ops = {
 	//.ndo_uninit		= ipgre_tunnel_uninit,
 	.ndo_open		= tunnel_open,
 	.ndo_stop		= tunnel_close,
-	.ndo_start_xmit		= public4over6_tunnel_xmit,
-	.ndo_do_ioctl		= public4over6_ioctl,
-	.ndo_change_mtu		= public4over6_change_mtu,
+	.ndo_start_xmit		= lw4over6_tunnel_xmit,
+	.ndo_do_ioctl		= lw4over6_ioctl,
+	.ndo_change_mtu		= lw4over6_change_mtu,
 };
 
 //Module initialize
-static int __init public4over6_init(void)
+static int __init lw4over6_init(void)
 {
   int err;
-  netdev = alloc_netdev( sizeof(struct tunnel_private),TUNNEL_DEVICE_NAME,public4over6_setup);
+  netdev = alloc_netdev( sizeof(struct tunnel_private),TUNNEL_DEVICE_NAME,lw4over6_setup);
     strcpy(netdev->name,TUNNEL_DEVICE_NAME);
     memset(netdev_priv(netdev), 0, sizeof(struct tunnel_private));
     if((err=register_netdev(netdev)))//register the device
     {
-       CDBG("[public 4over6 tunnel]:Can't register the device %s,error number is %i.\n",TUNNEL_DEVICE_NAME,err);
+       CDBG("[lw 4over6 tunnel]:Can't register the device %s,error number is %i.\n",TUNNEL_DEVICE_NAME,err);
        return -EIO;
     }
     else
@@ -679,21 +679,21 @@ static int __init public4over6_init(void)
     }
     if(inet6_add_protocol( &ip6ip_protocol,IPPROTO_IPIP)==0)//register the 4over6 protocol in IPv6 level.
     {
-       CDBG("[public 4over6 tunnel]:registered the 4over6 protocol!\n" );
+       CDBG("[lw 4over6 tunnel]:registered the 4over6 protocol!\n" );
     }
     else 
     {
-       CDBG("[public 4over6 tunnel]:can't register the 4over6 protocol!\n");
+       CDBG("[lw 4over6 tunnel]:can't register the 4over6 protocol!\n");
        unregister_netdev(netdev);
        return -1;  
     }
-    CDBG("[public 4over6 tunnel]:initialized.\n");
+    CDBG("[lw 4over6 tunnel]:initialized.\n");
     return 0;
 }
 
 
 
-static void public4over6_setup(struct net_device *dev)
+static void lw4over6_setup(struct net_device *dev)
 {   
     //dev->uninit = tunnel_uninit;
     dev->flags|= IFF_NOARP|IFF_BROADCAST;
@@ -706,7 +706,8 @@ static void public4over6_setup(struct net_device *dev)
     //dev->type=ARPHRD_ETHER;
     dev->type=ARPHRD_TUNNEL6;
     dev->hard_header_len=14; //  dev->hard_header_len = 14;
-    dev->mtu= ETH_DATA_LEN-sizeof(struct ipv6hdr); //dev->mtu = 1500 - sizeof( struct ipv6hdr );
+    //dev->mtu= ETH_DATA_LEN-sizeof(struct ipv6hdr); //dev->mtu = 1500 - sizeof( struct ipv6hdr );
+    dev->mtu= 15000;
     generate_random_hw(dev);//generate a random hardware address.
 	portset.index = 0;
 	portset.mask = 0;
@@ -718,11 +719,11 @@ void cleanup_module( void )
   unregister_netdev(netdev);
   if (inet6_del_protocol( &ip6ip_protocol,IPPROTO_IPIP)<0)
   {
-     CDBG("[public 4over6 tunnel]:Can't register the 4over6 protocol!\n");
+     CDBG("[lw 4over6 tunnel]:Can't register the 4over6 protocol!\n");
   }
 }
 
-module_init(public4over6_init);
+module_init(lw4over6_init);
 MODULE_LICENSE("Dual BSD/GPL");
 
 

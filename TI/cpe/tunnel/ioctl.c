@@ -7,7 +7,7 @@
 #include <net/if.h>
 #include <errno.h>
  
-#include "public4over6.h"
+#include "lw4over6.h"
 
 
 void set_tunnel(struct in6_addr remote,struct in6_addr local)

@@ -7,11 +7,11 @@ INTERFACE="eth0"
 export CURDIR=$(pwd)
 
 #-------------------------------------------------------
-echo Loading public4over6 module...
+echo Loading lw4over6 module...
 #dmesg -c
 
-insmod $CURDIR/public4over6.ko
-ifconfig public4over6 up
+insmod $CURDIR/lw4over6.ko
+ifconfig lw4over6 up
 #-------------------------------------------------------
 
 $CURDIR/ioctl -a $TC_IPV6_ADDRESS $TI_IPV6_ADDRESS

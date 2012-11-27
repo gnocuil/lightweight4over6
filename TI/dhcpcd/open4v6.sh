@@ -1,3 +1,3 @@
 #!/bin/bash
 #rm -f ~/network/data/misc/dhcp/*
-sudo ./dhcpcd  public4over6
+sudo ./dhcpcd  lw4over6

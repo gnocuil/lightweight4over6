@@ -5,7 +5,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 
-#define TUNNEL_DEVICE_NAME "public4over6"
+#define TUNNEL_DEVICE_NAME "lw4over6"
 
 #define TUNNELPORTSET SIOCDEVPRIVATE+1//set port set mask and index to support ping (icmp).
 
