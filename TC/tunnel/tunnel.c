@@ -17,9 +17,9 @@
 #define NF_IP6_LOCAL_OUT 3
 #endif
 
-#define DEBUG_public4over6_  1
+#define DEBUG_lw4over6_  1
 
-#ifdef DEBUG_public4over6_
+#ifdef DEBUG_lw4over6_
 #define CDBG(msg,args...) printk(KERN_DEBUG msg,##args)
 #else
 #define CDBG(msg,args...) do {}while(0)
@@ -292,7 +292,7 @@ struct in6_addr* get_ipv6_addr(char ifname[])
    if we use the way of invoking xmit() to send the package,
    then we still need some changes.
 */
-int public4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
+int lw4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
 {
  
     struct iphdr *iph;
@@ -303,34 +303,34 @@ int public4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
     struct dst_entry *dst;
     struct ecitem *ect;
     struct net_device_stats *stats;//statistics
-    struct public4over6_tunnel_private *pinfo;
+    struct lw4over6_tunnel_private *pinfo;
     char buf[512];
     unsigned int head_room;    
     unsigned short portNum;
     CDBG("xmit in %d,protocol %d\n",htons(ETH_P_IP), skb-> protocol);
     if(skb->protocol!= htons(ETH_P_IP)) //judgement of IP protocol
     {
-        CDBG("public4over6_tunnel_xmit:this is not IPv4 protocol this is %d\n",skb->protocol);
+        CDBG("lw4over6_tunnel_xmit:this is not IPv4 protocol this is %d\n",skb->protocol);
         goto tx_error;
     }
     stats=&dev->stats;
-    pinfo=(struct public4over6_tunnel_private*)netdev_priv(dev);
+    pinfo=(struct lw4over6_tunnel_private*)netdev_priv(dev);
     iph = ip_hdr(skb);
     daddr.s_addr = iph->daddr;
     saddr.s_addr = iph->saddr;
     
     /* print source and destination of skb */
-#ifdef DEBUG_public4over6_
+#ifdef DEBUG_lw4over6_
     inet_ntoa(saddr,buf,NULL);
-    CDBG("public4over6_tunnel_xmit:the source IPv4 address is %s\n",buf);
+    CDBG("lw4over6_tunnel_xmit:the source IPv4 address is %s\n",buf);
     inet_ntoa(daddr,buf,NULL);
-    CDBG("public4over6_tunnel_xmit:the destination IPv4 address is %s\n",buf);
+    CDBG("lw4over6_tunnel_xmit:the destination IPv4 address is %s\n",buf);
 #endif
     /* [pset] get the portNum of the IPv4 packet for ecitem lookup*/
     portNum = get_portNum_dest(skb, 0);  
-    CDBG("[public4over6]public4over6_tunnel_xmit:the portNum is %d\n", portNum);
+    CDBG("[lw4over6]lw4over6_tunnel_xmit:the portNum is %d\n", portNum);
     /* find corresponding encapsulation item */
-    ect=public4over6_ecitem_lookup(dev,(struct in_addr*)&daddr, portNum);//pset:add portNum
+    ect=lw4over6_ecitem_lookup(dev,(struct in_addr*)&daddr, portNum);//pset:add portNum
     if(ect)
     {
        ect->inbound_bytes+=skb->len;
@@ -340,11 +340,11 @@ int public4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
     }
     else 
     {   
-        CDBG("public4over6_tunnel_xmit: Can not find corresponding ipv6 destination in ECT!\n");            
+        CDBG("lw4over6_tunnel_xmit: Can not find corresponding ipv6 destination in ECT!\n");            
         goto tx_error;
     }   
 
-#ifdef DEBUG_public4over6_
+#ifdef DEBUG_lw4over6_
     inet_ntop_v6(src_addr,buf);
     printk(KERN_INFO "IPv6 source address is %s!\n",buf);
     inet_ntop_v6(out_addr,buf);
@@ -404,7 +404,7 @@ int public4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
     nf_reset(skb);
     if(!skb_dst(skb))
     {
-        printk(KERN_WARNING":public4over6_tunnel_xmit:Cannot find route information for packet!\n");
+        printk(KERN_WARNING":lw4over6_tunnel_xmit:Cannot find route information for packet!\n");
         goto tx_error;
     }
     else
@@ -432,7 +432,7 @@ tx_error:
 
 
 //Should we do something here?
-void public4over6_err( struct sk_buff* skb,struct inet6_skb_parm* opt,u8 type,u8 code,int offset,__be32 info )
+void lw4over6_err( struct sk_buff* skb,struct inet6_skb_parm* opt,u8 type,u8 code,int offset,__be32 info )
 {
     CDBG("IP6IP Error!(type=%d, code=%d, offset=%d)\n",type,code,offset);
 }
@@ -441,17 +441,17 @@ void public4over6_err( struct sk_buff* skb,struct inet6_skb_parm* opt,u8 type,u8
 //IOCTL function
 int tunnel_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 {  
-   struct public4over6_tunnel_private *pinfo; 
+   struct lw4over6_tunnel_private *pinfo; 
    struct ecitem *pecit,*ptables;
    int i=0,ecitem_num=0,err;
    if (!capable(CAP_NET_ADMIN))
    {
       return -EPERM;
    }
-   if(cmd==TUNNEL_MAPPING_NUM)//we should know all the ecitems(public4over6 tunnel encapsulation item)
+   if(cmd==TUNNEL_MAPPING_NUM)//we should know all the ecitems(lw4over6 tunnel encapsulation item)
    {
        ecitem_num=0;
-       pinfo=(struct public4over6_tunnel_private*)netdev_priv(dev);
+       pinfo=(struct lw4over6_tunnel_private*)netdev_priv(dev);
        for(i=0;i<HASH_SIZE;i++)
        {  
           if(pinfo && pinfo->ectables[i])//NULL pointer check.
@@ -474,7 +474,7 @@ int tunnel_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
    else if(cmd==TUNNEL_MAPPING_INFO)//we would like to retrieve the mapping item info.
    {   
        //First,we should calculate the number of ecitems.
-       pinfo=(struct public4over6_tunnel_private*)netdev_priv(dev);
+       pinfo=(struct lw4over6_tunnel_private*)netdev_priv(dev);
        ecitem_num=0;
        for(i=0;i<HASH_SIZE;i++)
        {  
@@ -497,7 +497,7 @@ int tunnel_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
        }
        //Next,we should copy all the ecitems.
        ecitem_num=0;
-       pinfo=(struct public4over6_tunnel_private*)netdev_priv(dev);
+       pinfo=(struct lw4over6_tunnel_private*)netdev_priv(dev);
        for(i=0;i<HASH_SIZE;i++)
        {  
           if(pinfo && pinfo->ectables[i])//NULL pointer check.
@@ -522,7 +522,7 @@ int tunnel_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
    }
    else if(cmd==TUNNEL_DEL_ALL_MAPPING)//we just delete all the mapping(including mac mapping)
    {
-       public4over6_ecitem_free(netdev);
+       lw4over6_ecitem_free(netdev);
    }
    else if(cmd==TUNNEL_SET_MAPPING)
    {
@@ -534,7 +534,7 @@ int tunnel_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
          return err;
       }
       do_gettimeofday(&pecit->start_time);
-      public4over6_ecitem_set(netdev,pecit);
+      lw4over6_ecitem_set(netdev,pecit);
    }
    else if(cmd==TUNNEL_DEL_MAPPING)
    {
@@ -545,14 +545,14 @@ int tunnel_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
          CDBG("copy_from_user fails!\n");
          return err;
       }
-      pecit=public4over6_ecitem_unlink(netdev,&pecit->remote, pecit->pset_index, pecit->pset_mask, 1);//we just delete mapping item whose tag is 1(manual mapping item)
+      pecit=lw4over6_ecitem_unlink(netdev,&pecit->remote, pecit->pset_index, pecit->pset_mask, 1);//we just delete mapping item whose tag is 1(manual mapping item)
       if(pecit)
         kfree(pecit);//do not forget kfree
    }
    else if(cmd==TUNNEL_GET_BINDING)
    {
-      pinfo=(struct public4over6_tunnel_private*)netdev_priv(dev);
-      err=copy_to_user(ifr->ifr_data,pinfo,sizeof(struct public4over6_tunnel_private));
+      pinfo=(struct lw4over6_tunnel_private*)netdev_priv(dev);
+      err=copy_to_user(ifr->ifr_data,pinfo,sizeof(struct lw4over6_tunnel_private));
       if(err)
       {
          CDBG("copy_to_user fails!\n");
@@ -561,7 +561,7 @@ int tunnel_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
    }
    else if(cmd==TUNNEL_SET_BINDING)
    {
-      pinfo=(struct public4over6_tunnel_private*)netdev_priv(dev);
+      pinfo=(struct lw4over6_tunnel_private*)netdev_priv(dev);
       err=copy_from_user(pinfo->ifname,ifr->ifr_data,IFNAMSIZ);
       if(err)
       {
@@ -727,7 +727,7 @@ static inline void ip6ip_ecn_decapsulate(struct net_device* dev, struct ipv6hdr 
 }
 
 
-int public4over6_rcv(struct sk_buff *skb)
+int lw4over6_rcv(struct sk_buff *skb)
 {
  
     struct ipv6hdr *ipv6h;
@@ -740,17 +740,17 @@ int public4over6_rcv(struct sk_buff *skb)
     if(!pskb_may_pull(skb, sizeof(struct iphdr)))
     {
        stats->rx_errors++;  
-       CDBG("public4over6_rcv: error in decapsulating a packet! skb->len=%d\n", skb->len);
+       CDBG("lw4over6_rcv: error in decapsulating a packet! skb->len=%d\n", skb->len);
        dev_put(ndev);
        goto rcv_error;
     }
-    CDBG("public4over6_rcv: receiving a packet skb->len=%d\n", skb->len);
+    CDBG("lw4over6_rcv: receiving a packet skb->len=%d\n", skb->len);
     stats->rx_packets++;
     stats->rx_bytes+=skb->len;
     dev_put(ndev);
     ipv6h=ipv6_hdr(skb);
     /* print the addresses if needed */
-#ifdef DEBUG_public4over6_
+#ifdef DEBUG_lw4over6_
     inet_ntop_v6(ipv6h->saddr,buff);
     CDBG("the source IPv6 address is %s\n",buff);
     inet_ntop_v6(ipv6h->daddr,buff);
@@ -768,9 +768,9 @@ int public4over6_rcv(struct sk_buff *skb)
     ////[pset]////
     unsigned short portNum_dest, portNum_src;
     portNum_src = get_portNum_src(skb, 1);
-    pect=public4over6_ecitem_lookup(netdev,(struct in_addr*)&iph->saddr, portNum_src);
+    pect=lw4over6_ecitem_lookup(netdev,(struct in_addr*)&iph->saddr, portNum_src);
     portNum_dest = get_portNum_dest(skb, 1);
-    ptmp=public4over6_ecitem_lookup(netdev,(struct in_addr*)&iph->daddr, portNum_dest);
+    ptmp=lw4over6_ecitem_lookup(netdev,(struct in_addr*)&iph->daddr, portNum_dest);
     //for basic flow statistics.
     if(pect)
     {
@@ -788,11 +788,11 @@ int public4over6_rcv(struct sk_buff *skb)
     err=netif_rx(skb); 
     if(err)
     {
-        CDBG("public4over6_rcv: decaped packet is dropped\n");
+        CDBG("lw4over6_rcv: decaped packet is dropped\n");
         goto rcv_error;
     }
     else
-        CDBG("public4over6_rcv: finish decapsulating packet\n" );
+        CDBG("lw4over6_rcv: finish decapsulating packet\n" );
     return 0;
 rcv_error: 
     dev_kfree_skb(skb);//kfree_skb(skb);
@@ -800,8 +800,8 @@ rcv_error:
 }
 
 static struct inet6_protocol ip6ip_protocol={
-  .handler = public4over6_rcv,
-  .err_handler = public4over6_err,
+  .handler = lw4over6_rcv,
+  .err_handler = lw4over6_err,
   .flags = INET6_PROTO_NOPOLICY |INET6_PROTO_FINAL,
 };
 
@@ -810,7 +810,7 @@ static const struct net_device_ops ip6ip_netdev_ops = {
     //.ndo_uninit        = ipgre_tunnel_uninit,
     .ndo_open        = tunnel_open,
     .ndo_stop        = tunnel_close,
-    .ndo_start_xmit        = public4over6_tunnel_xmit,
+    .ndo_start_xmit        = lw4over6_tunnel_xmit,
     .ndo_do_ioctl        = tunnel_ioctl,
     .ndo_change_mtu        = tunnel_change_mtu,
 };
@@ -836,18 +836,18 @@ static void tunnel_setup(struct net_device *dev)
 
 static int __init tunnel_init(void)
 {   
-    struct public4over6_tunnel_private *pinfo;
+    struct lw4over6_tunnel_private *pinfo;
     struct in6_addr *plocal6;
     int err = -ENOMEM;
     /* allocate memory for device private info */
-    netdev = alloc_netdev(sizeof(struct public4over6_tunnel_private),TUNNEL_DEVICE_NAME,tunnel_setup);
+    netdev = alloc_netdev(sizeof(struct lw4over6_tunnel_private),TUNNEL_DEVICE_NAME,tunnel_setup);
     if(!netdev)
     {
         CDBG("tunnel_init: alloc_netdev failed: %i\n",err);
         return err;
     }
     strcpy(netdev->name,TUNNEL_DEVICE_NAME);
-    memset(netdev_priv(netdev),0,sizeof(struct public4over6_tunnel_private));
+    memset(netdev_priv(netdev),0,sizeof(struct lw4over6_tunnel_private));
     if((err=register_netdev(netdev)))
     {
         CDBG("tunnel_init: register_netdev failed: %i\n",err);
@@ -861,7 +861,7 @@ static int __init tunnel_init(void)
         free_netdev(netdev);
         return err;
     }
-    pinfo=(struct public4over6_tunnel_private*)(netdev_priv(netdev));
+    pinfo=(struct lw4over6_tunnel_private*)(netdev_priv(netdev));
     pinfo->dev=netdev;
     /* get an ipv6 address as the local tunnel point */
     memcpy(pinfo->ifname,TUNNEL_BIND_IFACE,(int)strlen(TUNNEL_BIND_IFACE));
@@ -877,7 +877,7 @@ static int __init tunnel_init(void)
 static void __exit tunnel_exit(void)
 {   
     //never forget to delete the mapping.
-    public4over6_ecitem_free(netdev);
+    lw4over6_ecitem_free(netdev);
     unregister_netdev(netdev);
     if(inet6_del_protocol( &ip6ip_protocol,IPPROTO_IPIP)<0)
     {

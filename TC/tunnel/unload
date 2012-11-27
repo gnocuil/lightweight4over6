@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo Unloading public4over6 module...
-sudo rmmod $CURDIR/public4over6.ko
+echo Unloading lw4over6 module...
+sudo rmmod $CURDIR/lw4over6.ko

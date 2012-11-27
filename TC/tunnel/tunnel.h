@@ -5,7 +5,7 @@
 
 #define TUNNEL_SET 1
 
-#define TUNNEL_DEVICE_NAME "public4over6"
+#define TUNNEL_DEVICE_NAME "lw4over6"
 #define TUNNEL_BIND_IFACE "eth0"//default binded interface.
 
 #define TUNNELMESSAGE SIOCDEVPRIVATE
@@ -20,10 +20,10 @@
 #define TUNNEL_SET_BINDING SIOCDEVPRIVATE+9//set the tunnel to bind which interface.
 
 static struct net_device *netdev=NULL;
-static DEFINE_RWLOCK(public4over6_lock);
+static DEFINE_RWLOCK(lw4over6_lock);
 
-//public4over6 tunnel private data--encapsulation table
-struct public4over6_tunnel_private
+//lw4over6 tunnel private data--encapsulation table
+struct lw4over6_tunnel_private
 {   
     char ifname[IFNAMSIZ];//the iface that the tunnel binds with.
     int dhcp_snoofing;//whether dhcp snoofing is on

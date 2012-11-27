@@ -150,7 +150,7 @@ void del_mapping(struct in_addr remote, unsigned short index, unsigned short mas
    struct ifreq req;
    int sock;
 
-   sock=socket(AF_INET,SOCK_RAW,IPPROTO_RAW);//raw socket in order to interact with tunnel of public4over6.
+   sock=socket(AF_INET,SOCK_RAW,IPPROTO_RAW);//raw socket in order to interact with tunnel of lw4over6.
    if (sock<0)
    {
       fprintf(stderr,"Can't create io control socket for interface %s!\n",TUNNEL_DEVICE_NAME);
@@ -199,7 +199,7 @@ void del_all_mapping()
 void get_tunnel_ipv6()
 {
    struct ifreq req;
-   struct public4over6_tunnel_private info;
+   struct lw4over6_tunnel_private info;
    struct in6_addr tunnel_ipv6;
    char addr6[INET6_ADDRSTRLEN];
    int sock;
@@ -217,7 +217,7 @@ void get_tunnel_ipv6()
      printf("can't send ioctl message TUNNEL_GET_BINDING!\n");
      return ;
    }
-   info=*(struct public4over6_tunnel_private*)req.ifr_data;
+   info=*(struct lw4over6_tunnel_private*)req.ifr_data;
    tunnel_ipv6=info.local6;
    inet_ntop(AF_INET6,(void*)&tunnel_ipv6,addr6,INET6_ADDRSTRLEN);
    printf("TC binds %s, TC encapsulation IPv6 is: %-40s",info.ifname,addr6);

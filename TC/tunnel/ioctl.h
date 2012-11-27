@@ -1,5 +1,5 @@
-#ifndef __PUBLIC4OVER6_IOCTL_H__
-#define __PUBLIC4OVER6_IOCTL_H__
+#ifndef __LW4OVER6_IOCTL_H__
+#define __LW4OVER6_IOCTL_H__
 #include "tunnel.h"
 void set_mapping(struct in_addr remote,struct in6_addr remote6)
 {

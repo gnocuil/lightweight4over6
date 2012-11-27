@@ -32,27 +32,27 @@ int mask_bits_pset(unsigned short mask)
 	return result;
 }
 //lookup the encapsulation item according remote IPv4 address + portNum [pset]
-struct ecitem* public4over6_ecitem_lookup(struct net_device *dev,struct in_addr *remote, unsigned short portNum)
+struct ecitem* lw4over6_ecitem_lookup(struct net_device *dev,struct in_addr *remote, unsigned short portNum)
 {  
   struct ecitem *t;
    __be32 h0=remote->s_addr;
    int bits = 16;
    //unsigned key0=HASH(h0);//hash func should be changed
    unsigned key0;
-   struct public4over6_tunnel_private *priv=netdev_priv(dev);
+   struct lw4over6_tunnel_private *priv=netdev_priv(dev);
 /***bits change from 16 to 1 to find the hashed ecitem*/
    while(bits > 0){
 	key0 = HASH(h0, bits, portNum);
-   	read_lock_bh(&public4over6_lock);
+   	read_lock_bh(&lw4over6_lock);
    	for(t=priv->ectables[key0];t && remote ;t=t->next)
    	{
       		if(remote->s_addr==t->remote.s_addr && ((portNum & t->pset_mask) == t->pset_index))//pset
       		{
-          		read_unlock_bh(&public4over6_lock);
+          		read_unlock_bh(&lw4over6_lock);
           		return t;
       		}
    	}
-   	read_unlock_bh(&public4over6_lock);
+   	read_unlock_bh(&lw4over6_lock);
 	bits--;
    }
    return NULL;
@@ -96,14 +96,14 @@ char* inet_ntop_ipv6(struct in6_addr addr, char *dst)
     return dst;
 }
 //lookup the encapsulation item according remote IPv6 address
-struct ecitem* public4over6_ecitem_lookup_by_ipv6(struct net_device *dev,struct in6_addr *remote6)
+struct ecitem* lw4over6_ecitem_lookup_by_ipv6(struct net_device *dev,struct in6_addr *remote6)
 {  
    int i=0;
    //char addr1[255],addr2[255];
    unsigned char *s,*d;
    struct ecitem *pecitem,*pcur;
-   struct public4over6_tunnel_private *priv=netdev_priv(dev);
-   read_lock_bh(&public4over6_lock);
+   struct lw4over6_tunnel_private *priv=netdev_priv(dev);
+   read_lock_bh(&lw4over6_lock);
    for(i=0;i<HASH_SIZE;i++)
    {
       pecitem=priv->ectables[i];
@@ -119,13 +119,13 @@ struct ecitem* public4over6_ecitem_lookup_by_ipv6(struct net_device *dev,struct 
          //if(comp_string(s,d,sizeof(struct in6_addr))==0)
          if(ipv6_addr_equal(&pcur->remote6,remote6))
          {
-             read_unlock_bh(&public4over6_lock);
+             read_unlock_bh(&lw4over6_lock);
              return pcur;
          }
          pcur=pcur->next;
       }
    }
-   read_unlock_bh(&public4over6_lock);
+   read_unlock_bh(&lw4over6_lock);
    return NULL;
       
 } 
@@ -137,53 +137,53 @@ static struct ecitem* lw4over6_ecitem_lookup_pset(struct net_device *dev, struct
    int bits;
    //unsigned key0=HASH(h0);
    unsigned key0;
-   struct public4over6_tunnel_private *priv=netdev_priv(dev);
+   struct lw4over6_tunnel_private *priv=netdev_priv(dev);
 
    bits = mask_bits_pset(pset_mask);
    key0 = HASH(h0, bits, pset_index);
-   read_lock_bh(&public4over6_lock);
+   read_lock_bh(&lw4over6_lock);
    for(t=priv->ectables[key0];t && remote ;t=t->next)
    {
       if(remote->s_addr==t->remote.s_addr && pset_index == t->pset_index && pset_mask == t->pset_mask)
       {
-          read_unlock_bh(&public4over6_lock);
+          read_unlock_bh(&lw4over6_lock);
           return t;
       }
    }
-   read_unlock_bh(&public4over6_lock);
+   read_unlock_bh(&lw4over6_lock);
    return NULL;
 
 }
 
   
 //set ecitem: add or modify; invoke the new lookup func.
-void public4over6_ecitem_set(struct net_device *dev,struct ecitem *pect)
+void lw4over6_ecitem_set(struct net_device *dev,struct ecitem *pect)
 {
    struct ecitem *p;
    p=lw4over6_ecitem_lookup_pset(dev,&pect->remote, pect->pset_index, pect->pset_mask);//pset
    if(!p)
-      public4over6_ecitem_link(dev,pect);//add a ecitem  
+      lw4over6_ecitem_link(dev,pect);//add a ecitem  
    else//modify the ecitem
    {   
-       write_lock_bh(&public4over6_lock);
+       write_lock_bh(&lw4over6_lock);
        p->remote6=pect->remote6;
-	   write_unlock_bh(&public4over6_lock);
+	   write_unlock_bh(&lw4over6_lock);
        kfree(pect);
    }
 }
 
 //unlink the encapsulation item according IPv4 remote address + pset_index & pset_mask. Is it needed to check whether the ecitem exists?
-struct ecitem* public4over6_ecitem_unlink(struct net_device *dev,struct in_addr *remote, unsigned short pset_index, unsigned short pset_mask, int tag)
+struct ecitem* lw4over6_ecitem_unlink(struct net_device *dev,struct in_addr *remote, unsigned short pset_index, unsigned short pset_mask, int tag)
 {
    __be32 h0=remote->s_addr;
    unsigned key0=HASH(h0, mask_bits_pset(pset_mask), pset_index);////pset///
-   struct public4over6_tunnel_private *priv=netdev_priv(dev);
+   struct lw4over6_tunnel_private *priv=netdev_priv(dev);
    struct ecitem *t=NULL,*prev=NULL;
    for(t=priv->ectables[key0];t && remote;prev=t,t=t->next)
    {
       if(remote->s_addr==t->remote.s_addr && pset_index==t->pset_index && pset_mask==t->pset_mask && t->tag==tag)//tag match.
       {  
-         write_lock_bh(&public4over6_lock);
+         write_lock_bh(&lw4over6_lock);
          if(prev==NULL)//unlink the first ecitem
          {
             prev=t;
@@ -195,7 +195,7 @@ struct ecitem* public4over6_ecitem_unlink(struct net_device *dev,struct in_addr 
              prev->next=t->next;
              prev=t;
          }
-         write_unlock_bh(&public4over6_lock);
+         write_unlock_bh(&lw4over6_lock);
          return prev;
      }
   }
@@ -203,25 +203,25 @@ struct ecitem* public4over6_ecitem_unlink(struct net_device *dev,struct in_addr 
 }
 
 //link the encapsulation item
-void public4over6_ecitem_link(struct net_device *dev,struct ecitem *ect)
+void lw4over6_ecitem_link(struct net_device *dev,struct ecitem *ect)
 {
    __be32 h0=ect->remote.s_addr;
    unsigned key0=HASH(h0, mask_bits_pset(ect->pset_mask), ect->pset_index);//pset
-   struct public4over6_tunnel_private *priv=netdev_priv(dev);
+   struct lw4over6_tunnel_private *priv=netdev_priv(dev);
    if(lw4over6_ecitem_lookup_pset(dev,&ect->remote, ect->pset_mask, ect->pset_index)==NULL)
    {
       struct ecitem *t=priv->ectables[key0];
-      write_lock_bh(&public4over6_lock);
+      write_lock_bh(&lw4over6_lock);
       ect->next=t;//ect->next=priv->ectables[key0];
       priv->ectables[key0]=ect;
-      write_unlock_bh(&public4over6_lock);
+      write_unlock_bh(&lw4over6_lock);
    }
 }
 
 //free all the ecitems
-void public4over6_ecitem_free(struct net_device *dev)
+void lw4over6_ecitem_free(struct net_device *dev)
 {
-   struct public4over6_tunnel_private *priv=netdev_priv(dev);
+   struct lw4over6_tunnel_private *priv=netdev_priv(dev);
    struct ecitem *pecitem=NULL;
    struct ecitem *pcur=NULL,*pnext=NULL;
    int i=0;
@@ -231,11 +231,11 @@ void public4over6_ecitem_free(struct net_device *dev)
       pcur=pecitem;
       while(pcur)
       {
-         write_lock_bh(&public4over6_lock);
+         write_lock_bh(&lw4over6_lock);
          pnext=pcur->next;
          kfree(pcur);
          pcur=pnext;
-         write_unlock_bh(&public4over6_lock);
+         write_unlock_bh(&lw4over6_lock);
       }
       priv->ectables[i]=pcur;
    }
