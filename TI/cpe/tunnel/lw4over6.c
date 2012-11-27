@@ -428,10 +428,10 @@ int lw4over6_ioctl(struct net_device *dev,struct ifreq *ifr,int cmd)
 
 static int lw4over6_change_mtu(struct net_device* dev,int new_mtu)
 {
-//    if((new_mtu<68)||(new_mtu>1500))
-//    {
-//       return -EINVAL;
-//    }
+    if((new_mtu<68)||(new_mtu>1500))
+    {
+       return -EINVAL;
+    }
     dev->mtu = new_mtu;
     return 0;
 }
@@ -706,8 +706,7 @@ static void lw4over6_setup(struct net_device *dev)
     //dev->type=ARPHRD_ETHER;
     dev->type=ARPHRD_TUNNEL6;
     dev->hard_header_len=14; //  dev->hard_header_len = 14;
-    //dev->mtu= ETH_DATA_LEN-sizeof(struct ipv6hdr); //dev->mtu = 1500 - sizeof( struct ipv6hdr );
-    dev->mtu= 15000;
+    dev->mtu= ETH_DATA_LEN-sizeof(struct ipv6hdr); //dev->mtu = 1500 - sizeof( struct ipv6hdr );
     generate_random_hw(dev);//generate a random hardware address.
 	portset.index = 0;
 	portset.mask = 0;
