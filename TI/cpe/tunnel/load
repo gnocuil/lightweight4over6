@@ -1,26 +1,38 @@
 #!/bin/bash
-GW_IPV6_ADDRESS="2001:da8:bf:19::3"
-TC_IPV6_ADDRESS="2001:da8:bf:19::3"
-TI_IPV6_ADDRESS="2001:da8:bf:19::7"
-INTERFACE="eth0"
 
-export CURDIR=$(pwd)
+if [ $# -lt 1 ] ; then
+TC_IPV6_ADDRESS="2001:da8:bf:19::3"
+else
+TC_IPV6_ADDRESS=$1
+fi
+
+if [ $# -lt 2 ] ; then
+TI_IPV6_ADDRESS="2001:da8:bf:19::7"
+else
+TI_IPV6_ADDRESS=$2
+fi
+
+if [ $# -lt 3 ] ; then
+INTERFACE="eth0"
+else
+INTERFACE=$3
+fi
+
+
+#export CURDIR=$(pwd)
 
 #-------------------------------------------------------
 echo Loading lw4over6 module...
-#dmesg -c
 
-insmod $CURDIR/lw4over6.ko
+insmod lw4over6.ko
 ifconfig lw4over6 up
 #-------------------------------------------------------
 
-$CURDIR/ioctl -a $TC_IPV6_ADDRESS $TI_IPV6_ADDRESS
+./ioctl -a $TC_IPV6_ADDRESS $TI_IPV6_ADDRESS
 ip addr add $TI_IPV6_ADDRESS/64 dev $INTERFACE
-ip route add ::/0 via $GW_IPV6_ADDRESS
+ip route add ::/0 dev $INTERFACE
 echo "tc_ipv6_address:$TC_IPV6_ADDRESS"
 echo "ti_ipv6_address:$TI_IPV6_ADDRESS"
-#ip addr add 58.205.200.2/24 broadcast 58.205.200.255 dev public4over6
-#$CURDIR/conf/dhcp4-client start
 
 sysctl net.ipv4.ip_forward=1
 #--------------------------------------------------------------
