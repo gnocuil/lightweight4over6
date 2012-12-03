@@ -1,0 +1,11 @@
+#!/bin/sh
+
+CURDIR=$(pwd)
+
+cd cpe/tunnel
+./unload 
+cd $CURDIR
+
+killall cra
+
+killall dhcpcd
