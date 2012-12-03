@@ -4,11 +4,11 @@
 #include <net/arp.h>
 #include <net/inet_ecn.h>
 #include <linux/etherdevice.h>
-#include<net/ipv6.h>
+#include <net/ipv6.h>
 
-#include<linux/timer.h>
-#include<linux/time.h>
-#include<linux/jiffies.h>
+#include <linux/timer.h>
+#include <linux/time.h>
+#include <linux/jiffies.h>
 #include "tunnel.h"
 
 #include <net/icmp.h>
@@ -36,7 +36,7 @@ static void tunnel_setup( struct net_device* dev );
 
 static uint16_t bigpacket[65536];
 
-//[pset]get portNum func
+//[pset]get the destination port number from skb
 unsigned short get_portNum_dest(struct sk_buff* skb, int isSend)
 {
     int protoff;
@@ -49,10 +49,12 @@ unsigned short get_portNum_dest(struct sk_buff* skb, int isSend)
     iph = ip_hdr(skb);
     
     uint8_t flags = (uint8_t)(ntohs(iph->frag_off) >> 13);
+    
+    //fragment offset
     uint16_t frag_off = ntohs(iph->frag_off) & 0x1FFF;
     
+    //for fragmented ipv4 packets, choose the port number in the first packet
     if (!isSend && frag_off != 0) {
-        printk("<7> frag: use id=%x, port=%x\n", iph->id, bigpacket[iph->id]);
         return bigpacket[iph->id];
     }
     
@@ -64,17 +66,14 @@ unsigned short get_portNum_dest(struct sk_buff* skb, int isSend)
         udph=skb_header_pointer(skb, protoff, sizeof(udph), &udph);
         ret = ntohs(udph->dest);
     } else if (!isSend && iph -> protocol == IPPROTO_ICMP) {
-        printk("<7> [ICMP recv] ICMP!!!");
         //uint8 _t *
         struct icmphdr *icmph = (struct icmphdr *)(skb->data+(iph->ihl<<2));
-        printk("<7> [ICMP recv] \ticmph=%x type=%d", icmph, icmph->type);
         uint16_t id;
         int i;
         switch (icmph -> type) {
             case 0:
             case 8:
                 id = htons(*(uint16_t*)(((uint8_t*)icmph) + 4));
-                printk("<7> [ICMP recv] \tidentifier=%x\n", id);
                 ret = id;
                 break;
             default:
@@ -82,12 +81,9 @@ unsigned short get_portNum_dest(struct sk_buff* skb, int isSend)
                 protoff = iph -> ihl * 4;
                 if (iph->protocol == IPPROTO_TCP) {
                     tcph = (struct tcphdr*) (iph + protoff);
-                    printk("<7> [ICMP recv] \t TCP payload, port=%d", tcph->source);
                     ret = ntohs(tcph->source);
                 } else if (iph->protocol == IPPROTO_UDP) {
                     udph = (struct udphdr*) (iph + protoff);
-                    printk("<7> [ICMP recv] \t UDP payload, port=%d", udph->source);
-                    for (i = 0; i < 10; ++i) printk("<7> [ICMP recv]  udpdata=%x", *(((uint8_t*)udph) + i));
                     ret = ntohs(udph->source);
                 }
                 break;
@@ -118,16 +114,12 @@ unsigned short get_portNum_src(struct sk_buff* skb, int isSend)
         udph=skb_header_pointer(skb, protoff, sizeof(udph), &udph);
         return ntohs(udph->source);
     } else if (isSend && iph -> protocol == IPPROTO_ICMP) {
-        printk("<7> [ICMP send] ICMP!!!");
-        //uint8 _t *
         struct icmphdr *icmph = (struct icmphdr *)(skb->data+(iph->ihl<<2));
-        printk("<7> [ICMP send] \ticmph=%x type=%d", icmph, icmph->type);
         uint16_t id;
         switch (icmph -> type) {
             case 0:
             case 8:
                 id = htons(*(uint16_t*)(((uint8_t*)icmph) + 4));
-                printk("<7> [ICMP send] \tidentifier=%x\n", id);
                 return id;
             default:
                 break;
@@ -175,7 +167,6 @@ int tunnel_neigh_setup_dev(struct net_device* dev,struct neigh_parms *p)
  */
 void generate_random_hw(struct net_device *dev)
 {
-    //printk(KERN_INFO TUNNEL_DEVICE_NAME"generate_random_hw\n" );
     unsigned char tmp;
     struct net_device *pdev=__dev_get_by_name(&init_net,"eth0");
     memcpy(dev->dev_addr,pdev->dev_addr,6);
@@ -196,9 +187,6 @@ unsigned char* dhcp_type(struct sk_buff *skb,unsigned char *type)
    CDBG("This is dhcp_type()!\n");
     
    offset+=(int)(iph->ihl)*4;
-   //printk(KERN_INFO "iph->ihl is %d!\n",iph->ihl);
-   //printk(KERN_INFO "iph->tot_len is %d!\n",ntohs(iph->tot_len));
-   //printk(KERN_INFO "offset is %d!\n",offset);
    *type=0;
      
    if(buff[9]==0x11 &&  ((buff[offset]==0x00 && buff[offset+1]==0x43) || (buff[offset+2]==0x00 && buff[offset+3]==0x43)) )//This is dhcp packet
