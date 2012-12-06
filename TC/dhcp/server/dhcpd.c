@@ -589,8 +589,10 @@ main(int argc, char **argv) {
 		}
 	}
   
-  	if (local_family == AF_INET || local_family == AF_MAX) {
-		remote_port = htons(ntohs(local_port) );//[pset]
+  	if (local_family == AF_INET) {
+  	    remote_port = htons(ntohs(local_port) + 1);
+  	else if (local_family == AF_MAX) {//[pset]
+		remote_port = htons(ntohs(local_port) );
 	} else {
 		/* INSIST(local_family == AF_INET6); */
 		ent = getservbyname("dhcpv6-client", "udp");
