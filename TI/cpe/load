@@ -1,0 +1,47 @@
+#!/bin/sh
+
+if [ $# -lt 1 ] ; then
+TC_IPV6_ADDRESS="2001:da8:bf:19::3"
+else
+TC_IPV6_ADDRESS=$1
+fi
+
+if [ $# -lt 2 ] ; then
+TI_IPV6_ADDRESS="2001:da8:bf:19::7"
+else
+TI_IPV6_ADDRESS=$2
+fi
+
+if [ $# -lt 3 ] ; then
+INTERFACE="eth0"
+else
+INTERFACE=$3
+fi
+
+
+echo Loading lw4over6 module...
+
+ip -6 tunnel add lw4over6 mode ip4ip6 remote $TC_IPV6_ADDRESS local $TI_IPV6_ADDRESS
+ifconfig lw4over6 up
+
+#ip addr add $TI_IPV6_ADDRESS/64 dev $INTERFACE
+#ip route add ::/0 dev $INTERFACE
+ip route add default dev lw4over6
+echo "remote ipv6 address : $TC_IPV6_ADDRESS"
+echo "local  ipv6 address : $TI_IPV6_ADDRESS"
+echo "ipv6 device : $INTERFACE"
+
+sysctl net.ipv4.ip_forward=1
+#--------------------------------------------------------------
+
+
+
+
+
+
+
+ 
+
+
+
+
