@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
     //Initialize some variables
-    strcpy(TUNNEL_IFNAME,"eth2");
+    //strcpy(TUNNEL_IFNAME,"eth2");
     strcpy(PHYSIC_IFNAME,"eth2");
     buffLen = BUFFLEN;
 
@@ -17,60 +17,44 @@ int main(int argc, char **argv)
     
     //Read the arguments and operate
     int index = 2;
-    if (argc < 2)
-    {
+    if (argc < 2) {
         show_help();
         return 0;
     }
-    while (index <= argc)
-    {
-        if (strcmp(argv[index - 1],"-h") == 0) //help info
-              {
-                  show_help();
-                  return 0;
-              }
-        else if (strcmp(argv[index - 1],"-a") == 0) //set local6addr and remote6addr
-              {
-                 if(argc < index + 2)
-                 {
-                        printf("[4over6 CRA]: wrong number of arguments.\n");
-                         return 1;
-                 }
-                 strcpy(local6addr,argv[index]);
+    
+    while (index <= argc) {
+        if (strcmp(argv[index - 1],"-h") == 0) {//help info
+            show_help();
+                return 0;
+        } else if (strcmp(argv[index - 1],"-a") == 0) {//set local6addr and remote6addr
+            if (argc < index + 2) {
+                printf("[4over6 CRA]: wrong number of arguments.\n");
+                return 1;
+            }
+            strcpy(local6addr,argv[index]);
             strcpy(remote6addr,argv[index + 1]);
             index += 3;
-              }
-        else if (strcmp(argv[index - 1],"-b") == 0) //set physic device name
-                {
-                        if(argc < index + 1)
-                        {
-                                 printf("[4over6 CRA]: wrong number of arguments.\n");
-                                 return 1;
-                        }
-                        strcpy(PHYSIC_IFNAME,argv[index]);
+        } else if (strcmp(argv[index - 1],"-b") == 0) {//set physic device name
+            if (argc < index + 1) {
+                printf("[4over6 CRA]: wrong number of arguments.\n");
+                    return 1;
+            }
+            strcpy(PHYSIC_IFNAME,argv[index]);
             index += 2;
-                }
-                else if (strcmp(argv[index - 1],"-c") == 0) //set tunnel device name
-                {
-                        if(argc < index + 1)
-                        {
-                                 printf("[4over6 CRA]: wrong number of arguments.\n");
-                                 return 1;
-                        }
-                        strcpy(TUNNEL_IFNAME,argv[index]);
-                        index += 2;
-                }
-        else if (strcmp(argv[index - 1],"-d") == 0)//run with default configuration
-        {
-            if(index == 2)
-            {
+       } else if (strcmp(argv[index - 1],"-c") == 0) {//set tunnel device name
+            if(argc < index + 1) {
+               printf("[4over6 CRA]: wrong number of arguments.\n");
+               return 1;
+            }
+            //strcpy(TUNNEL_IFNAME,argv[index]);
+            index += 2;
+        } else if (strcmp(argv[index - 1],"-d") == 0) {//run with default configuration
+            if(index == 2) {
                 printf("\n[4over6 CRA]:Continue with default configuration.\n");
                 index = argc + 1;
             }
             index ++;
-        }
-        else
-        {
+        } else {
             show_help();
             return 0;
         }
@@ -98,6 +82,7 @@ int main(int argc, char **argv)
     printf("macphy = %s\n",mac_to_str(macaddr_phy));
 
     //Get MAC address of 4over6 interface
+    /*
     s_info = socket(AF_INET, SOCK_DGRAM, 0);
     strcpy(ifopt.ifr_name,TUNNEL_IFNAME);
     if (ioctl(s_info, SIOCGIFHWADDR, &ifopt) == -1)
@@ -111,6 +96,7 @@ int main(int argc, char **argv)
     memcpy (device.sll_addr, macaddr_4o6, 6);
     device.sll_halen = htons (6);
     close(s_info);
+    */
 
     //Create the socket that listening to all packets
     s_dhcp = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
@@ -391,7 +377,7 @@ int sendPacket4(char *ethhead, char *udphead, int udplen)
     frame = malloc (sizeof(char) * frame_len);
     //Add ethernet header
     memcpy(frame, ethhead, 14);
-    memcpy(frame, macaddr_4o6, 6);
+    memcpy(frame, udphead + 36, 6);
     frame[12] = ETH_P_IP / 256;
     frame[13] = ETH_P_IP % 256;
     //Add ipv4 header

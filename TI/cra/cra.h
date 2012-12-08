@@ -14,7 +14,6 @@
 #include <netinet/ip.h>  //struct ip
 #include <netinet/ip6.h> //struct ip6_hdr
 #define BUFFLEN 1501
-//#define TUNNEL_IFNAME "lw4over6"
 
 struct udp6_psedoheader {
         uint8_t srcaddr[16];
@@ -33,7 +32,7 @@ struct udp4_psedoheader {
 };
 
 
-char TUNNEL_IFNAME[20];
+//char TUNNEL_IFNAME[20];
 char PHYSIC_IFNAME[20];
 
 struct ifreq ifopt;
@@ -41,7 +40,8 @@ char buff[BUFFLEN];
 int buffLen;
 char *ethhead, *iphead, *udphead, *payload;
 int udplen;
-char macaddr_4o6[6], macaddr_phy[6], local6addr[128], remote6addr[128], macaddr_remote[6];
+//char macaddr_4o6[6];
+char macaddr_phy[6], local6addr[128], remote6addr[128], macaddr_remote[6];
 char remote6addr_buf[16];
 
 int s_dhcp, s_info, s_send, s_send6;
