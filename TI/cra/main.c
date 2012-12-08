@@ -15,8 +15,6 @@ int main(int argc, char **argv)
         
     memset(macaddr_remote, 0xFF, 6);
     
-    //dhcp4_src_port = 68;
-
     //Read the arguments and operate
     int index = 2;
     if (argc < 2)
@@ -110,8 +108,8 @@ int main(int argc, char **argv)
     memcpy(macaddr_4o6, ifopt.ifr_hwaddr.sa_data,ETH_ALEN);
     printf("mac4o6 = %s\n",mac_to_str(macaddr_4o6));
     device.sll_family = AF_PACKET;
-        memcpy (device.sll_addr, macaddr_4o6, 6);
-        device.sll_halen = htons (6);
+    memcpy (device.sll_addr, macaddr_4o6, 6);
+    device.sll_halen = htons (6);
     close(s_info);
 
     //Create the socket that listening to all packets
@@ -153,13 +151,10 @@ int main(int argc, char **argv)
             if (isUDPpacket(iphead,4)) {
                 if(isDHCPpacket(4, udphead)) {
                     //Send out DHCPv4-over-v6 packet
-                    if(isTunnelDhcp(udphead)) {
-                        uint8_t message_type = *(udphead + 8);
-                        if (message_type == 1) {
-                            //dhcp4_src_port = dhcp4_src_port_t;
-                            sendPacket6(ethhead,udphead,udplen);
-                        }
-                    }// else printf("is not TunnelDhcp!!!!!\n");
+                    uint8_t message_type = *(udphead + 8);
+                    if (message_type == 1) {
+                        sendPacket6(ethhead,udphead,udplen);
+                    }
                 }// else printf("is not DHCP!!!!!\n");
             }
         } else if (type == 6) {
@@ -167,11 +162,9 @@ int main(int argc, char **argv)
             if (isUDPpacket(iphead,6)) {
                 if(isDHCPpacket(6, udphead)) {
                     //Send back DHCPv4 packet to 4over6 interface.
-                    if(isTunnelDhcp(udphead)) {
-                        uint8_t message_type = *(udphead + 8);
-                        if (message_type == 2) {
-                            sendPacket4(ethhead,udphead,udplen);
-                        }
+                    uint8_t message_type = *(udphead + 8);
+                    if (message_type == 2) {
+                        sendPacket4(ethhead,udphead,udplen);
                     }
                 }
             }
@@ -280,7 +273,6 @@ int isDHCPpacket(int type, char* udphead)
             //printf("[4over6 CRA]: Got a packet but not targeted to port %d.\n",dst);
             return 0;
         }  
-        //dhcp4_src_port_t = src_port;
     }
     if (type == 6) {
         if (dst_port != 67 || src_port != 67)
@@ -291,17 +283,6 @@ int isDHCPpacket(int type, char* udphead)
     }
 
     return 1;
-}
-
-int isTunnelDhcp(char *udphead)
-{
-    char *dhcphead = udphead + 8;
-    if (memcmp(macaddr_4o6,dhcphead + 28,6) == 0 || memcmp(macaddr_phy,dhcphead + 28,6) == 0)
-    {
-        printf("[4over6 CRA]:Got the right DHCP packet!\n");
-        return 1;
-    }
-    return 0;
 }
 
 int isDHCPACK(char* udphead)
@@ -368,22 +349,13 @@ int getPacket()
 }
 
 int sendPacket6(char* ethhead, char* udphead, int udplen)
-{printf("sendPacket6!\n");
+{
     char *frame = NULL;
     int frame_len = 40 + udplen;
     frame = malloc (sizeof(char) * frame_len);
 
     *(uint16_t*)udphead = htons(67);
 
-    //Add ethernet header
-    /*
-    memcpy(frame, ethhead, 14);
-    memcpy(frame, macaddr_remote, 6);
-    memcpy(frame + 6, macaddr_phy, 6);
-    frame[12] = ETH_P_IPV6 / 256;
-    frame[13] = ETH_P_IPV6 % 256;
-    */
-    
     //Add ipv6 header
     send_ip6hdr.ip6_flow = htonl((6 << 28) | (0 << 20) | 0);        
     send_ip6hdr.ip6_plen = htons(udplen);
@@ -402,8 +374,7 @@ int sendPacket6(char* ethhead, char* udphead, int udplen)
     //Add udp header + dhcp data
     memcpy(frame + 40, udphead, udplen);
 
-    if (sendto(s_send6, frame, frame_len, 0, (struct sockaddr *)&remote_addr6, sizeof(remote_addr6)) < 0)
-    {
+    if (sendto(s_send6, frame, frame_len, 0, (struct sockaddr *)&remote_addr6, sizeof(remote_addr6)) < 0) {
         printf("[4over6 CRA]: Failed to send out dhcpv4-over-v6 packet.\n");
         return 1;
     }
@@ -413,89 +384,61 @@ int sendPacket6(char* ethhead, char* udphead, int udplen)
 
 int sendPacket4(char *ethhead, char *udphead, int udplen)
 {
-    //*(uint16_t*)(udphead + 2) = htons(dhcp4_src_port);
     *(uint16_t*)(udphead + 2) = htons(68);
     char *frame = NULL;
     udplen += 40;
-        int frame_len = 14 + 20 + udplen;
-        frame = malloc (sizeof(char) * frame_len);
-        //Add ethernet header
-        memcpy(frame, ethhead, 14);
-        memcpy(frame, macaddr_4o6, 6);
+    int frame_len = 14 + 20 + udplen;
+    frame = malloc (sizeof(char) * frame_len);
+    //Add ethernet header
+    memcpy(frame, ethhead, 14);
+    memcpy(frame, macaddr_4o6, 6);
     frame[12] = ETH_P_IP / 256;
-        frame[13] = ETH_P_IP % 256;
-        //Add ipv4 header
-        send_ip4hdr.ip_hl = 5;
-        send_ip4hdr.ip_v = 4;
+    frame[13] = ETH_P_IP % 256;
+    //Add ipv4 header
+    send_ip4hdr.ip_hl = 5;
+    send_ip4hdr.ip_v = 4;
     send_ip4hdr.ip_tos = 0;
     send_ip4hdr.ip_len = htons(20 + udplen);
-        send_ip4hdr.ip_id = htons(0);
-        send_ip4hdr.ip_off = htons(0);
+    send_ip4hdr.ip_id = htons(0);
+    send_ip4hdr.ip_off = htons(0);
     send_ip4hdr.ip_ttl = 255;
     send_ip4hdr.ip_p = IPPROTO_UDP;
     //ciaddr is from yiaddr field
     memcpy(ciaddr,udphead + 24,4);
     //siaddr is fixed to a custom value, and this may not matter
-//    memcpy(siaddr,udphead + 20,4);
-//    inet_pton(AF_INET,"58.205.200.1",&siaddr);
+    //memcpy(siaddr,udphead + 20,4);
+    //inet_pton(AF_INET,"58.205.200.1",&siaddr);
     inet_pton(AF_INET,"0.0.0.0",&siaddr);
-//        inet_pton(AF_INET,ciaddr,&send_ip4hdr.ip_src);
-//        inet_pton(AF_INET,siaddr,&send_ip4hdr.ip_dst);
+    //inet_pton(AF_INET,ciaddr,&send_ip4hdr.ip_src);
+    //inet_pton(AF_INET,siaddr,&send_ip4hdr.ip_dst);
     memcpy((char*)&send_ip4hdr.ip_dst,ciaddr,4);
     memcpy((char*)&send_ip4hdr.ip_src,siaddr,4);
     send_ip4hdr.ip_sum = 0;
     send_ip4hdr.ip_sum = checksum((unsigned short int*)&send_ip4hdr,20);
-        memcpy(frame + 14,(char *)&send_ip4hdr, 20);
+    memcpy(frame + 14,(char *)&send_ip4hdr, 20);
 
-    memcpy(udphead + 36, macaddr_4o6, 6);
+    //memcpy(udphead + 36, macaddr_4o6, 6);
 
     //Re-caculate the udp checksum
-        uint16_t newchecksum = udpchecksum((char*)&send_ip4hdr, udphead, udplen,4);
-
+    uint16_t newchecksum = udpchecksum((char*)&send_ip4hdr, udphead, udplen,4);
     udphead[6] = (newchecksum >> 8) & 0xFF;
-        udphead[7] = newchecksum & 0xFF;
-        //Add udp header + dhcp data
-        memcpy(frame + 14 + 20, udphead, udplen);
-        //Send out packet
-    //printf("Going to setDevIndex in sendPacket4.\n");
-        if(setDevIndex("lo"))
-        {
-                return 1;
-        }
-    //printf("After setDevIndex in sendPacket4~!\n");
-        int count = 0;
-    //if(sendto(s_send, frame, frame_len, 0, (struct sockaddr *)&device, sizeof(device)) <= 0)
-    if((count = sendto(s_send, frame, frame_len, 0, (struct sockaddr *)&device, sizeof(device))) <= 0)
-        {
-                printf("[4over6 CRA]: Failed to send back dhcpv4 packet.\n");
-                return 1;
-        }
-    //printf("count %d,udplen %d\n", count, udplen);
-/*
-    //用普通udp socket来发dhcpv4报文给虚接口
-    struct sockaddr_in psedoaddr, localaddr;
-        int s_sendv4 = socket(AF_INET, SOCK_DGRAM, 0);
-    psedoaddr.sin_family = AF_INET;
-    psedoaddr.sin_port = htons(68);
-    inet_pton(AF_INET, "127.0.0.1", &psedoaddr.sin_addr);
+    udphead[7] = newchecksum & 0xFF;
     
-    localaddr.sin_family = AF_INET;
-    localaddr.sin_port = htons(67);
-    inet_pton(AF_INET, "58.205.200.1", &localaddr.sin_addr);
-    if (bind(s_sendv4, (struct sockaddr*)&localaddr, sizeof(struct sockaddr_in)) == -1)
-    {
-        printf("[4over6 CRA]: Failed to bind s_sendv4 to local port 67.\n");
-//        return 1;
+    //Add udp header + dhcp data
+    memcpy(frame + 14 + 20, udphead, udplen);
+    //Send out packet
+
+    if(setDevIndex("lo")) {
+        return 1;
     }
 
-    if(sendto(s_sendv4, udphead + 8, udplen - 8 + 40, 0, (struct sockaddr *)&psedoaddr, sizeof(struct sockaddr_in)) <= 0)
-    {
+    if(sendto(s_send, frame, frame_len, 0, (struct sockaddr *)&device, sizeof(device)) < 0) {
         printf("[4over6 CRA]: Failed to send back dhcpv4 packet.\n");
         return 1;
     }
-*/
+
     free(frame);
-        return 0;    
+    return 0;    
 }
 
 

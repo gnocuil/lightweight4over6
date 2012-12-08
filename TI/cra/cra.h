@@ -50,7 +50,6 @@ char ciaddr[4], siaddr[4];
 struct sockaddr_ll device;
 struct ip send_ip4hdr;
 struct ip6_hdr send_ip6hdr;
-//uint16_t dhcp4_src_port_t, dhcp4_src_port;
 
 unsigned short int checksum (unsigned short int*, int);
 char* mac_to_str(unsigned char *);
@@ -59,7 +58,6 @@ int setDevIndex(char *);
 int getPacket( );
 int isUDPpacket(char* iphead, int type);
 int isDHCPpacket(int type, char*);
-int isTunnelDhcp(char*);
 int isDHCPACK(char*);
 
 int sendPacket6(char*, char*, int);
