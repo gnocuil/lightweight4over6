@@ -41,8 +41,10 @@ iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 iptables -t nat -A POSTROUTING -s $PUBLICIP -p TCP -j MASQUERADE --to-ports $START-$OVER
 iptables -t nat -A POSTROUTING -s $PUBLICIP -p UDP -j MASQUERADE --to-ports $START-$OVER
+iptables -t nat -A POSTROUTING -s $PUBLICIP -p ICMP -j MASQUERADE --to-ports $START-$OVER
 iptables -t nat -A POSTROUTING -s $PRIVATEIP -p TCP -j MASQUERADE --to-ports $START-$OVER
 iptables -t nat -A POSTROUTING -s $PRIVATEIP -p UDP -j MASQUERADE --to-ports $START-$OVER
+iptables -t nat -A POSTROUTING -s $PRIVATEIP -p ICMP -j MASQUERADE --to-ports $START-$OVER
 
 iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1420
 
