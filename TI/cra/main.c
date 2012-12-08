@@ -13,8 +13,6 @@ int main(int argc, char **argv)
     strcpy(local6addr,"2001:da8:bf:19::7");
     strcpy(remote6addr,"2001:da8:bf:19::3");
         
-    memset(macaddr_remote, 0xFF, 6);
-    
     //Read the arguments and operate
     int index = 2;
     if (argc < 2) {
@@ -121,11 +119,6 @@ int main(int argc, char **argv)
         printf("[4over6 CRA]: Failed to create send socket.\n");
         return 1;
     }    
-
-    char cmd[256] = {0};
-    sprintf(cmd, "ping6 -c 1 %s", remote6addr);
-    printf("cmd=%s\n", cmd);
-    system(cmd);
 
     printf("[4over6 CRA]: Listening...\n");
     getFakeReply();
@@ -300,35 +293,28 @@ int getPacket()
 {
     memset(buff,0,buffLen);
     //Get a packet from all the interfaces
-    //int result = recvfrom(s_dhcp, buff, buffLen, 0, NULL, NULL);
-    int result = recv(s_dhcp,buff,buffLen,0);
+    int result = recv(s_dhcp, buff, buffLen, 0);
+
     //Locate the headers of the packet
     ethhead = buff;
     iphead = ethhead + 14;
     //printf("ethhead=%x\n", ethhead);
     if (ethhead[0] == 0x45 && ethhead[1] == 0x00) {
         iphead = ethhead;
-    //puts("starts from ip header!!!!!\n");
     }
-    //printf("iphead=%x\n", iphead);
+
     int type = 0;
     if (iphead[0] == 0x45)
         type = 4;
     else if (iphead[0] == 0x60)
         type = 6;
         
-        if (type == 4)
-    {
+    if (type == 4) {
         udphead = iphead + 20;
-            udplen = ((iphead[2]<<8)&0XFF00 | iphead[3]&0XFF) - 20;
-    }
-    else if (type == 6)
-    {
+        udplen = ((iphead[2]<<8)&0XFF00 | iphead[3]&0XFF) - 20;
+    } else if (type == 6) {
         udphead = iphead + 40;
         udplen = ((iphead[4]<<8)&0XFF00 | iphead[5]&0XFF) - 40;
-        if (memcmp(iphead + 8, remote6addr_buf, 16) == 0) {
-            memcpy(macaddr_remote, ethhead + 6, 6);
-        }
     }
     
     return type;

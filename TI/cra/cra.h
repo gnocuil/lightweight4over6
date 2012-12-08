@@ -41,7 +41,7 @@ int buffLen;
 char *ethhead, *iphead, *udphead, *payload;
 int udplen;
 //char macaddr_4o6[6];
-char macaddr_phy[6], local6addr[128], remote6addr[128], macaddr_remote[6];
+char macaddr_phy[6], local6addr[128], remote6addr[128];
 char remote6addr_buf[16];
 
 int s_dhcp, s_info, s_send, s_send6;
