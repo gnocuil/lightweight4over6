@@ -44,19 +44,13 @@ int udplen;
 char macaddr_4o6[6], macaddr_phy[6], local6addr[128], remote6addr[128], macaddr_remote[6];
 char remote6addr_buf[16];
 
-int s_dhcp, s_info, s_send;
-struct sockaddr_in6 remote_addr6,local_addr6;
+int s_dhcp, s_info, s_send, s_send6;
+struct sockaddr_in6 remote_addr6, local_addr6;
 char ciaddr[4], siaddr[4];
 struct sockaddr_ll device;
 struct ip send_ip4hdr;
 struct ip6_hdr send_ip6hdr;
 //uint16_t dhcp4_src_port_t, dhcp4_src_port;
-
-int status;
-#define STOP 0
-#define INITIATE 1
-#define WAIT_FOR_REQ 2
-#define WAIT_FOR_REPLY 3
 
 unsigned short int checksum (unsigned short int*, int);
 char* mac_to_str(unsigned char *);
