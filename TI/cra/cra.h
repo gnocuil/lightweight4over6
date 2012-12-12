@@ -38,7 +38,7 @@ struct interface {
 };
 
 //char TUNNEL_IFNAME[20];
-char PHYSIC_IFNAME[20];
+//char PHYSIC_IFNAME[20];
 
 char buff[BUFFLEN];
 int buffLen;

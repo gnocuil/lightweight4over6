@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 {
     //Initialize some variables
     //strcpy(TUNNEL_IFNAME,"eth2");
-    strcpy(PHYSIC_IFNAME, "eth2");
+    //strcpy(PHYSIC_IFNAME, "eth2");
     buffLen = BUFFLEN;
     
     device.sll_family = AF_PACKET;
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
                 printf("[4over6 CRA]: wrong number of arguments.\n");
                     return 1;
             }
-            strcpy(PHYSIC_IFNAME,argv[index]);
+            //strcpy(PHYSIC_IFNAME,argv[index]);
             index += 2;
        } else if (strcmp(argv[index - 1],"-c") == 0) {//set tunnel device name
             if(argc < index + 1) {
@@ -498,12 +498,12 @@ uint16_t udpchecksum(char *iphead, char *udphead, int udplen, int type)
 //UI Function    ===========================
 void show_help(void)
 {
-   printf("./cra [-h] | [-d]\n      [-a local_v6_addr remote_v6_addr] | [-b interface_name] | [-c interface_name]\n");
+   printf("./cra [-h] | [-d]\n      [-a local_v6_addr remote_v6_addr]\n");
    printf("-h : display this help information.\n");
    printf("-d : run program with default settings.\n");
    printf("-a : set local and remote ipv6 address.\n");
-   printf("-b : set physic device (interface) name.\n");
-   printf("-c : set the name of the interface on which runs the DHCP client.\n");
+//   printf("-b : set physic device (interface) name.\n");
+//   printf("-c : set the name of the interface on which runs the DHCP client.\n");
    return ;
 }
 
