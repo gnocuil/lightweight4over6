@@ -1,12 +1,35 @@
 #include "cra.h"
 
+void init_interfaces()
+{
+    struct if_nameindex *interfaces = if_nameindex(), *interface;
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    for (interface = interfaces; interface && interface->if_index; interface++) {
+        struct ifreq ifopt;
+        memset(&ifopt, 0, sizeof(ifopt));
+        strcpy(ifopt.ifr_name, interface->if_name);
+        if (ioctl(fd, SIOCGIFHWADDR, &ifopt) == -1) {
+            printf("[4over6 CRA]: Failed to get MAC address of %s\n", interface->if_name);
+        } else {
+            struct interface *local_interface = malloc(sizeof(struct interface));
+            memset(local_interface, 0, sizeof(struct interface));
+            memcpy(local_interface->addr, ifopt.ifr_hwaddr.sa_data, ETH_ALEN);
+            printf("\tlocal interface : %d %s %s\n", interface->if_index, interface->if_name, mac_to_str(local_interface->addr));
+            local_interface->next = local_interfaces;
+            local_interfaces = local_interface;
+        }
+    }
+    if_freenameindex(interfaces);
+    close(fd);    
+}
+
 int main(int argc, char **argv)
 {
     //Initialize some variables
     //strcpy(TUNNEL_IFNAME,"eth2");
-    strcpy(PHYSIC_IFNAME,"eth2");
+    strcpy(PHYSIC_IFNAME, "eth2");
     buffLen = BUFFLEN;
-
+    
     device.sll_family = AF_PACKET;
     device.sll_halen = htons (6);
 
@@ -60,25 +83,31 @@ int main(int argc, char **argv)
     //Show current configuration
     printf("[4over6 CRA]:Current configuration:\n");
     printf("local v6 address:%s\nremote v6 address:%s\n",local6addr,remote6addr);
-    printf("physic interface:%s\n",PHYSIC_IFNAME);
+    //printf("physic interface:%s\n",PHYSIC_IFNAME);
 
     inet_pton(AF_INET6,remote6addr,remote6addr_buf);
     
     remote_addr6.sin6_family = AF_INET6;
     inet_pton(AF_INET6, remote6addr, &(remote_addr6.sin6_addr));
 
+    init_interfaces();
 
     //Get MAC address of physics interface
-    s_info = socket(AF_INET, SOCK_DGRAM, 0);
+    /*
+    struct ifreq ifopt;
+    memset(&ifopt, 0, sizeof(ifopt));
+    int s_info = socket(AF_INET, SOCK_DGRAM, 0);
     strcpy(ifopt.ifr_name,PHYSIC_IFNAME);
     if (ioctl(s_info, SIOCGIFHWADDR, &ifopt) == -1)
     {
-        printf("[4over6 CRA]: Failed to get MAC address of 4over6 interface.\n");
+        printf("[4over6 CRA]: Failed to get MAC address of physics interface.\n");
         return 1;
     }
+    close(s_info);
     memcpy(macaddr_phy, ifopt.ifr_hwaddr.sa_data,ETH_ALEN);
     printf("macphy = %s\n",mac_to_str(macaddr_phy));
-
+    */
+    
     //Get MAC address of 4over6 interface
     /*
     s_info = socket(AF_INET, SOCK_DGRAM, 0);
@@ -160,41 +189,39 @@ int main(int argc, char **argv)
 unsigned short int
 checksum (unsigned short int *addr, int len)
 {
-  int nleft = len;
-  int sum = 0;
-  unsigned short int *w = addr;
-  unsigned short int answer = 0;
+    int nleft = len;
+    int sum = 0;
+    unsigned short int *w = addr;
+    unsigned short int answer = 0;
 
-  while (nleft > 1) {
-    sum += *w++;
-    nleft -= sizeof (unsigned short int);
-  }
+    while (nleft > 1) {
+        sum += *w++;
+        nleft -= sizeof (unsigned short int);
+    }
 
-  if (nleft == 1) {
-    *(unsigned char *) (&answer) = *(unsigned char *) w;
-    sum += answer;
-  }
+    if (nleft == 1) {
+        *(unsigned char *) (&answer) = *(unsigned char *) w;
+        sum += answer;
+    }
 
-  sum = (sum >> 16) + (sum & 0xFFFF);
-  sum += (sum >> 16);
-  answer = ~sum;
-  return (answer);
+    sum = (sum >> 16) + (sum & 0xFFFF);
+    sum += (sum >> 16);
+    answer = ~sum;
+    return (answer);
 }
 
 char* mac_to_str(unsigned char *ha)
 {
     int i;  
-        static char macstr_buf[18] = {'\0', };    
-      memset(macstr_buf, 0x00, 18);   
-        for ( i = 0 ; i < ETH_ALEN ; i++)  
-        {  
-            hexNumToStr(ha[i],&macstr_buf[i*3]);  
-               if ( i < 5 )  
-            {  
-                    macstr_buf[(i+1)*3-1] = ':';  
-            }  
+    static char macstr_buf[18] = {'\0', };    
+    memset(macstr_buf, 0x00, 18);   
+    for ( i = 0 ; i < ETH_ALEN ; i++) {  
+        hexNumToStr(ha[i],&macstr_buf[i*3]);  
+        if ( i < 5 ) {  
+            macstr_buf[(i+1)*3-1] = ':';  
         }  
-        return macstr_buf; 
+    }  
+    return macstr_buf; 
 }
 
 void hexNumToStr(unsigned int number, char *str)  
@@ -203,6 +230,7 @@ void hexNumToStr(unsigned int number, char *str)
     str[0]=AsciiNum[(number>> 4)&0xf];  
     str[1]=AsciiNum[number&0xf];  
 } 
+
 int setDevIndex(char* devname)
 {
     // Resolve the interface index.
@@ -403,8 +431,8 @@ int sendPacket4(char *ethhead, char *udphead, int udplen)
     if(setDevIndex("lo")) {
         return 1;
     }
-
-    if(sendto(s_send, frame, frame_len, 0, (struct sockaddr *)&device, sizeof(device)) < 0) {
+    
+    if (sendto(s_send, frame, frame_len, 0, (struct sockaddr *)&device, sizeof(device)) < 0) {
         printf("[4over6 CRA]: Failed to send back dhcpv4 packet.\n");
         return 1;
     }
@@ -417,7 +445,7 @@ int sendPacket4(char *ethhead, char *udphead, int udplen)
 uint16_t udpchecksum(char *iphead, char *udphead, int udplen, int type)
 {
     udphead[6] = udphead[7] = 0;
-        uint32_t checksum = 0;
+    uint32_t checksum = 0;
     //printf("udp checksum is 0x%02x%02x\n", (uint8_t)udphead[6], (uint8_t)udphead[7]);
     if (type == 6)
     {
@@ -437,17 +465,17 @@ uint16_t udpchecksum(char *iphead, char *udphead, int udplen, int type)
     else if (type == 4)
     {
         struct udp4_psedoheader header;
-                memcpy((char*)&header.srcaddr, iphead + 12, 4);
-                memcpy((char*)&header.dstaddr, iphead + 16, 4);
-                header.zero = 0;
-                header.protocol = 0x11;
-                header.length = ntohs(udplen);
-                uint16_t *hptr = (uint16_t*)&header;
-                int hlen = sizeof(header);
-                while (hlen > 0) {
-                        checksum += *(hptr++);
-                        hlen -= 2;
-                }
+        memcpy((char*)&header.srcaddr, iphead + 12, 4);
+        memcpy((char*)&header.dstaddr, iphead + 16, 4);
+        header.zero = 0;
+        header.protocol = 0x11;
+        header.length = ntohs(udplen);
+        uint16_t *hptr = (uint16_t*)&header;
+        int hlen = sizeof(header);
+        while (hlen > 0) {
+            checksum += *(hptr++);
+            hlen -= 2;
+        }
     }    
     uint16_t *uptr = (uint16_t*)udphead;
     while (udplen > 1) {    
@@ -455,14 +483,12 @@ uint16_t udpchecksum(char *iphead, char *udphead, int udplen, int type)
         udplen -= 2;
     }
     if (udplen) {
-//        checksum += (*((uint8_t*)uptr)) << 8;
         checksum += (*((uint8_t*)uptr)) ;
     }
     do {
         checksum = (checksum >> 16) + (checksum & 0xFFFF);
     } while (checksum != (checksum & 0xFFFF));
     uint16_t ans = checksum;
-    //printf("ans: 0x%04x\n", (ans == 0xFF)? 0xFF :ntohs(~ans));
     return (ans == 0xFF)? 0xFF :ntohs(~ans);
 }
 

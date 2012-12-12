@@ -16,35 +16,39 @@
 #define BUFFLEN 1501
 
 struct udp6_psedoheader {
-        uint8_t srcaddr[16];
-        uint8_t dstaddr[16];
-        uint32_t length;
-        uint16_t zero1;
-        uint8_t zero2;
-        uint8_t next_header;
-};
-struct udp4_psedoheader {
-        uint32_t srcaddr;
-        uint32_t dstaddr;
-        uint8_t zero;
-        uint8_t protocol;
-        uint16_t length;
+    uint8_t srcaddr[16];
+    uint8_t dstaddr[16];
+    uint32_t length;
+    uint16_t zero1;
+    uint8_t zero2;
+    uint8_t next_header;
 };
 
+struct udp4_psedoheader {
+    uint32_t srcaddr;
+    uint32_t dstaddr;
+    uint8_t zero;
+    uint8_t protocol;
+    uint16_t length;
+};
+
+struct interface {
+    uint8_t addr[ETH_ALEN];
+    struct interface *next;
+};
 
 //char TUNNEL_IFNAME[20];
 char PHYSIC_IFNAME[20];
 
-struct ifreq ifopt;
 char buff[BUFFLEN];
 int buffLen;
 char *ethhead, *iphead, *udphead, *payload;
 int udplen;
-//char macaddr_4o6[6];
-char macaddr_phy[6], local6addr[128], remote6addr[128];
+//char macaddr_4o6[6], macaddr_phy[6];
+char local6addr[128], remote6addr[128];
 char remote6addr_buf[16];
 
-int s_dhcp, s_info, s_send, s_send6;
+int s_dhcp, s_send, s_send6;
 struct sockaddr_in6 remote_addr6, local_addr6;
 char ciaddr[4], siaddr[4];
 struct sockaddr_ll device;
@@ -71,4 +75,7 @@ void show_help(void);
 
 //Debugging Function
 int getFakeReply(void); // This function is to listen on IPv6 port 67, and then vanish the ICMPv6 Port-Unreachable message
+
+struct interface *local_interfaces;
+void init_interfaces();
 
