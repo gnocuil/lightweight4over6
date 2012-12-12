@@ -13,14 +13,28 @@ void init_interfaces()
         } else {
             struct interface *local_interface = malloc(sizeof(struct interface));
             memset(local_interface, 0, sizeof(struct interface));
+            strcpy(local_interface->if_name, interface->if_name);
+            local_interface->if_index = interface->if_index;
             memcpy(local_interface->addr, ifopt.ifr_hwaddr.sa_data, ETH_ALEN);
-            printf("\tlocal interface : %d %s %s\n", interface->if_index, interface->if_name, mac_to_str(local_interface->addr));
+            printf("\tlocal interface : %d %s %s", interface->if_index, interface->if_name, mac_to_str(local_interface->addr));
             local_interface->next = local_interfaces;
             local_interfaces = local_interface;
+            if (strcmp(LCRA_IFNAME, interface->if_name) == 0) {
+                printf(" LCRA");
+                lcra_interface = local_interface;
+            }
+            printf("\n");
         }
     }
     if_freenameindex(interfaces);
     close(fd);    
+}
+
+static char firstAlpha(char *s)
+{
+    while (s && *s && *s == '-')
+        s++;
+    return s ? *s : 0;
 }
 
 int main(int argc, char **argv)
@@ -44,10 +58,8 @@ int main(int argc, char **argv)
     }
     
     while (index <= argc) {
-        if (strcmp(argv[index - 1],"-h") == 0) {//help info
-            show_help();
-                return 0;
-        } else if (strcmp(argv[index - 1],"-a") == 0) {//set local6addr and remote6addr
+        switch (firstAlpha(argv[index - 1])) {
+        case 'a' ://set local6addr and remote6addr
             if (argc < index + 2) {
                 printf("[4over6 CRA]: wrong number of arguments.\n");
                 return 1;
@@ -55,35 +67,41 @@ int main(int argc, char **argv)
             strcpy(local6addr,argv[index]);
             strcpy(remote6addr,argv[index + 1]);
             index += 3;
-        } else if (strcmp(argv[index - 1],"-b") == 0) {//set physic device name
-            if (argc < index + 1) {
-                printf("[4over6 CRA]: wrong number of arguments.\n");
-                    return 1;
-            }
-            //strcpy(PHYSIC_IFNAME,argv[index]);
+            break;
+        case 'b' ://set physic device name
+            printf("warning : option -b is not used any more!\n");
             index += 2;
-       } else if (strcmp(argv[index - 1],"-c") == 0) {//set tunnel device name
-            if(argc < index + 1) {
-               printf("[4over6 CRA]: wrong number of arguments.\n");
-               return 1;
-            }
-            //strcpy(TUNNEL_IFNAME,argv[index]);
+            break;
+        case 'c' ://set tunnel device name
+            printf("warning : option -c is not used any more!\n");
             index += 2;
-        } else if (strcmp(argv[index - 1],"-d") == 0) {//run with default configuration
-            if(index == 2) {
-                printf("\n[4over6 CRA]:Continue with default configuration.\n");
+            break;
+        case 'd' ://run with default configuration
+            if (index == 2) {
+                printf("[4over6 CRA]:Continue with default configuration.\n");
                 index = argc + 1;
             }
             index ++;
-        } else {
+            break;
+        case 'l' ://set LCRA device name
+            if (argc < index + 1) {
+                printf("[4over6 CRA]: wrong number of arguments.\n");
+                return 1;
+            }
+            strcpy(LCRA_IFNAME, argv[index]);
+            index += 2;
+            break;
+        case 'h' ://help info
+        default :
             show_help();
             return 0;
-        }
+        } 
     }
     //Show current configuration
-    printf("[4over6 CRA]:Current configuration:\n");
-    printf("local v6 address:%s\nremote v6 address:%s\n",local6addr,remote6addr);
+    //printf("[4over6 CRA]:Current configuration:\n");
+    printf("Local ipv6 address : %s\nRemote ipv6 address: %s\n",local6addr,remote6addr);
     //printf("physic interface:%s\n",PHYSIC_IFNAME);
+    //printf("LCRA interface : %s\n", LCRA_IFNAME);
 
     inet_pton(AF_INET6,remote6addr,remote6addr_buf);
     
@@ -382,6 +400,16 @@ int sendPacket6(char* ethhead, char* udphead, int udplen)
     return 0;
 }
 
+int isLocal(char *mac_addr)
+{
+    struct interface *interface = local_interfaces;
+    while (interface) {
+        if (memcmp(mac_addr, interface->addr, ETH_ALEN) == 0)
+            return interface->if_index;
+    }
+    return 0;
+}
+
 int sendPacket4(char *ethhead, char *udphead, int udplen)
 {
     *(uint16_t*)(udphead + 2) = htons(68);
@@ -428,9 +456,18 @@ int sendPacket4(char *ethhead, char *udphead, int udplen)
     memcpy(frame + 14 + 20, udphead, udplen);
     //Send out packet
 
-    if(setDevIndex("lo")) {
-        return 1;
+    if (isLocal(udphead + 36)) {//HCRA
+        printf("HHHHHHHHHHHHHHHHHHHHHHHHHHHCRA!!!\n");
+        if(setDevIndex("lo"))
+            return 1;
+    } else {//LCRA
+        printf("LLLLLLLLLLLLLLLLLLLLLLLLLLLCRA!!!\n");
+        if (lcra_interface)
+            if(setDevIndex(lcra_interface->if_name))
+                return 1;        
     }
+    memcpy(frame, udphead + 36, 6);
+
     
     if (sendto(s_send, frame, frame_len, 0, (struct sockaddr *)&device, sizeof(device)) < 0) {
         printf("[4over6 CRA]: Failed to send back dhcpv4 packet.\n");
@@ -498,10 +535,12 @@ uint16_t udpchecksum(char *iphead, char *udphead, int udplen, int type)
 //UI Function    ===========================
 void show_help(void)
 {
-   printf("./cra [-h] | [-d]\n      [-a local_v6_addr remote_v6_addr]\n");
-   printf("-h : display this help information.\n");
+   printf("Usage: cra [-d] | [-a <local_ipv6_addr> <remote_ipv6_addr>]\n");
+   printf("           [-l LCRA_INTERFACE_NAME]\n");
+//   printf("-h : display this help information.\n");
    printf("-d : run program with default settings.\n");
    printf("-a : set local and remote ipv6 address.\n");
+   printf("-l : set the name of the local interface which runs LCRA.\n");
 //   printf("-b : set physic device (interface) name.\n");
 //   printf("-c : set the name of the interface on which runs the DHCP client.\n");
    return ;

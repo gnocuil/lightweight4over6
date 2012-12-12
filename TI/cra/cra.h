@@ -33,12 +33,16 @@ struct udp4_psedoheader {
 };
 
 struct interface {
+    unsigned int if_index;
+    char if_name[20];
     uint8_t addr[ETH_ALEN];
     struct interface *next;
 };
 
 //char TUNNEL_IFNAME[20];
 //char PHYSIC_IFNAME[20];
+char LCRA_IFNAME[20];
+struct interface *lcra_interface;
 
 char buff[BUFFLEN];
 int buffLen;
@@ -78,4 +82,5 @@ int getFakeReply(void); // This function is to listen on IPv6 port 67, and then 
 
 struct interface *local_interfaces;
 void init_interfaces();
+int isLocal(char *mac_addr);
 
