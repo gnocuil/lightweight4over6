@@ -12,11 +12,11 @@ else
 TI_IPV6_ADDRESS=$2
 fi
 
-if [ $# -lt 3 ] ; then
-INTERFACE="eth0"
-else
-INTERFACE=$3
-fi
+#if [ $# -lt 3 ] ; then
+#INTERFACE="eth0"
+#else
+#INTERFACE=$3
+#fi
 
 
 echo Loading lw4over6 module...
@@ -29,7 +29,7 @@ ifconfig lw4over6 up
 ip route add default dev lw4over6
 echo "remote ipv6 address : $TC_IPV6_ADDRESS"
 echo "local  ipv6 address : $TI_IPV6_ADDRESS"
-echo "ipv6 device : $INTERFACE"
+#echo "ipv6 device : $INTERFACE"
 
 sysctl net.ipv4.ip_forward=1
 #--------------------------------------------------------------
