@@ -406,6 +406,7 @@ int isLocal(char *mac_addr)
     while (interface) {
         if (memcmp(mac_addr, interface->addr, ETH_ALEN) == 0)
             return interface->if_index;
+        interface = interface->next;
     }
     return 0;
 }
