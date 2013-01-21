@@ -169,10 +169,16 @@ void generate_random_hw(struct net_device *dev)
 {
     unsigned char tmp;
     struct net_device *pdev=__dev_get_by_name(&init_net,"eth0");
-    memcpy(dev->dev_addr,pdev->dev_addr,6);
-    tmp=dev->dev_addr[1];
-    dev->dev_addr[1]=dev->dev_addr[4];
-    dev->dev_addr[4]=tmp;
+    if (pdev == NULL) {
+        get_random_bytes(dev->dev_addr, ETH_ALEN);
+        dev->dev_addr[0] &= 0xfe;	// clear multicast bit 
+        dev->dev_addr[0] |= 0x02;	//set local assignment bit (IEEE802)
+    } else {
+        memcpy(dev->dev_addr,pdev->dev_addr,6);
+        tmp=dev->dev_addr[1];
+        dev->dev_addr[1]=dev->dev_addr[4];
+        dev->dev_addr[4]=tmp;
+    }
 }
 
 //return the type number of dhcp packet and hardware address
