@@ -17,7 +17,7 @@
 #define NF_IP6_LOCAL_OUT 3
 #endif
 
-#define DEBUG_lw4over6_  1
+//#define DEBUG_lw4over6_  1
 
 #ifdef DEBUG_lw4over6_
 #define CDBG(msg,args...) printk(KERN_DEBUG msg,##args)
@@ -301,7 +301,7 @@ int lw4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
     char buf[512];
     unsigned int head_room;    
     unsigned short portNum;
-    CDBG("xmit in %d,protocol %d\n",htons(ETH_P_IP), skb-> protocol);
+    //CDBG("xmit in %d,protocol %d\n",htons(ETH_P_IP), skb-> protocol);[2013.1.21]
     if(skb->protocol!= htons(ETH_P_IP)) //judgement of IP protocol
     {
         CDBG("lw4over6_tunnel_xmit:this is not IPv4 protocol this is %d\n",skb->protocol);
@@ -322,7 +322,7 @@ int lw4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
 #endif
     /* [pset] get the portNum of the IPv4 packet for ecitem lookup*/
     portNum = get_portNum_dest(skb, 0);  
-    CDBG("[lw4over6]lw4over6_tunnel_xmit:the portNum is %d\n", portNum);
+    //CDBG("[lw4over6]lw4over6_tunnel_xmit:the portNum is %d\n", portNum);[2013.1.21]
     /* find corresponding encapsulation item */
     ect=lw4over6_ecitem_lookup(dev,(struct in_addr*)&daddr, portNum);//pset:add portNum
     if(ect)
@@ -738,7 +738,7 @@ int lw4over6_rcv(struct sk_buff *skb)
        dev_put(ndev);
        goto rcv_error;
     }
-    CDBG("lw4over6_rcv: receiving a packet skb->len=%d\n", skb->len);
+    //CDBG("lw4over6_rcv: receiving a packet skb->len=%d\n", skb->len);[2013.1.21]
     stats->rx_packets++;
     stats->rx_bytes+=skb->len;
     dev_put(ndev);
@@ -786,7 +786,7 @@ int lw4over6_rcv(struct sk_buff *skb)
         goto rcv_error;
     }
     else
-        CDBG("lw4over6_rcv: finish decapsulating packet\n" );
+        ;//CDBG("lw4over6_rcv: finish decapsulating packet\n" );[2013.1.21]
     return 0;
 rcv_error: 
     dev_kfree_skb(skb);//kfree_skb(skb);
