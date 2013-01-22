@@ -209,10 +209,11 @@ handle_ping(char* ipv4header)
    then we still need some changes.
 */
 int lw4over6_tunnel_xmit(struct sk_buff *skb, struct net_device *dev)
-{printk("<7> [liucong]lw4over6_tunnel_xmit! skb->protocol=%04x skb->len=%d", htons(skb->protocol),skb->len);
-printk("<7> [liucong]data_len=%d\n", htons(skb->data_len));
-printk("<7> [liucong]mac_len=%d\n", (skb->mac_len));
-printk("<7> [liucong]mac_header=%x\n", (skb->mac_header));
+{
+//printk("<7> [liucong]lw4over6_tunnel_xmit! skb->protocol=%04x skb->len=%d", htons(skb->protocol),skb->len);
+//printk("<7> [liucong]data_len=%d\n", htons(skb->data_len));
+//printk("<7> [liucong]mac_len=%d\n", (skb->mac_len));
+//printk("<7> [liucong]mac_header=%x\n", (skb->mac_header));
  int i;
 // for (i = 0; i < 20; ++i) printk("<7> [liucong]\thead:[%x]=%02x", &(skb->head[i]), skb->head[i]);
 // for (i = 0; i < 20; ++i) printk("<7> [liucong]\tdata:[%x]=%02x", &(skb->data[i]), skb->data[i]);
@@ -232,7 +233,7 @@ printk("<7> [liucong]mac_header=%x\n", (skb->mac_header));
     daddr.s_addr = iph->daddr;
     saddr.s_addr = iph->saddr;
     
-    handle_ping((char*)iph);
+    //handle_ping((char*)iph);
     
     if (skb->protocol!= htons(ETH_P_IP)) //judgement of IP protocol
     {
@@ -568,7 +569,7 @@ static inline void ip6ip_ecn_decapsulate(struct net_device* dev, struct ipv6hdr 
 
 
 int lw4over6_rcv( struct sk_buff *skb )
-{printk("<7> [liucong]lw4over6_rcv! skb->len=%d", skb->len);
+{//printk("<7> [liucong]lw4over6_rcv! skb->len=%d", skb->len);
 
     struct ipv6hdr* ipv6th;
     char buff[255];
@@ -576,7 +577,7 @@ int lw4over6_rcv( struct sk_buff *skb )
     struct net_device *ndev=dev_get_by_name(dev_net(skb->dev),TUNNEL_DEVICE_NAME);  
     struct net_device_stats *stats=&ndev->stats;
     
-    CDBG("[lw 4over6 tunnel]:receive packet:receiving!\n");
+//    CDBG("[lw 4over6 tunnel]:receive packet:receiving!\n");
     stats->rx_packets++;
     stats->rx_bytes+=skb->len;
 
@@ -591,9 +592,9 @@ int lw4over6_rcv( struct sk_buff *skb )
     dev_put(ndev);
     ipv6th=ipv6_hdr(skb);
     
-    if (ipv6th->nexthdr == 0x04) {
-    	handle_ping((char*)ipv6th + 40);
-    }
+    //if (ipv6th->nexthdr == 0x04) {
+    //	handle_ping((char*)ipv6th + 40);
+    //}
     
     
     #ifdef DEBUG_LW4OVER6_
