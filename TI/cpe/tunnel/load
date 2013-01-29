@@ -12,14 +12,6 @@ else
 TI_IPV6_ADDRESS=$2
 fi
 
-if [ $# -lt 3 ] ; then
-INTERFACE="eth0"
-else
-INTERFACE=$3
-fi
-
-
-#export CURDIR=$(pwd)
 
 #-------------------------------------------------------
 echo Loading lw4over6 module...
@@ -29,11 +21,8 @@ ifconfig lw4over6 up
 #-------------------------------------------------------
 
 ./ioctl -a $TC_IPV6_ADDRESS $TI_IPV6_ADDRESS
-ip addr add $TI_IPV6_ADDRESS/64 dev $INTERFACE
-ip route add ::/0 dev $INTERFACE
 echo "remote ipv6 address : $TC_IPV6_ADDRESS"
 echo "local  ipv6 address : $TI_IPV6_ADDRESS"
-echo "ipv6 device : $INTERFACE"
 
 sysctl net.ipv4.ip_forward=1
 #--------------------------------------------------------------
