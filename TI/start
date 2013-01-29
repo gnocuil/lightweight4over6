@@ -8,11 +8,11 @@ REMOTE_IPV6_ADDR="2001:da8:bf:19::3"
 
 CURDIR=$(pwd)
 
-#cd cpe/tunnel
-./cpe/load $REMOTE_IPV6_ADDR $LOCAL_IPV6_ADDR
-#cd $CURDIR
+cd cpe/tunnel
+./load $REMOTE_IPV6_ADDR $LOCAL_IPV6_ADDR
+cd $CURDIR
 
-nohup ./cra/cra -a $LOCAL_IPV6_ADDR $REMOTE_IPV6_ADDR &
+./cra/cra -a $LOCAL_IPV6_ADDR $REMOTE_IPV6_ADDR &
 
-echo "dhcpcd!!!"
-./dhcpcd/dhcpcd $DHCP_CLIENT_DEVICE
+cd dhcpcd
+./dhcpcd $DHCP_CLIENT_DEVICE
