@@ -1108,7 +1108,11 @@ write_lease(const struct interface *iface, const struct dhcp_message *dhcp)
 			p += l;
 		}
 	}
+	struct if_options *ifo = iface->state->options;
+	write(fd, &(ifo->port), 2);
+	write(fd, &(ifo->portmask), 2);
 	bytes = write(fd, dhcp, bytes);
+	printf("write_lease file=%s bytes=%d %x %x\n", iface->leasefile, bytes, (ifo->port), (ifo->portmask));
 	close(fd);
 	return bytes;
 }
@@ -1131,7 +1135,12 @@ read_lease(const struct interface *iface)
 	    iface->name, iface->leasefile);
 	dhcp = xmalloc(sizeof(*dhcp));
 	memset(dhcp, 0, sizeof(*dhcp));
+
+	struct if_options *ifo = iface->state->options;
+    read(fd, &(ifo->port), 2);
+	read(fd, &(ifo->portmask), 2);
 	bytes = read(fd, dhcp, sizeof(*dhcp));
+	printf("read_lease bytes=%d size=%d %x %x\n", bytes, sizeof(*dhcp), (ifo->port), (ifo->portmask));
 	close(fd);
 	if (bytes < 0) {
 		free(dhcp);

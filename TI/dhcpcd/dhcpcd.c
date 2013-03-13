@@ -638,12 +638,13 @@ handle_dhcp(struct interface *iface, struct dhcp_message **dhcpp, const struct i
 			FILE *stream = fopen("port.txt","w");
 			if (!stream)
 				printf("Failed opening /port.txt!!!");
-			else
-				printf("Succ!!! dhcpcd.c, line 639\n");
-                        char data[20];
-                        snprintf(data, 20, "%d\n%d",ifo->port,ifo->portmask);
-                        fwrite(data,strlen(data),20,stream);
-                        fclose(stream);
+			else {
+				printf("Succ!!! dhcpcd.c, line 642\n");
+                char data[20];
+                snprintf(data, 20, "%d\n%d",ifo->port,ifo->portmask);
+                fwrite(data,strlen(data),20,stream);
+                fclose(stream);
+            }
 		}		
 		
 		if (!(ifo->options & DHCPCD_INFORM))

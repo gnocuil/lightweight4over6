@@ -7,7 +7,7 @@ RUNDIR=		/var/run
 LIBDIR=		/lib
 MANDIR=		/usr/share/man
 CC=		gcc
-CPPFLAGS+=	-D_BSD_SOURCE -D_XOPEN_SOURCE=600
+CPPFLAGS+=	-D_BSD_SOURCE -D_XOPEN_SOURCE=600 -D__ARCH_LINUX__
 SRCS+=		if-linux.c if-linux-wireless.c lpf.c
 SRCS+=		platform-linux.c
 LDADD+=		-lrt
