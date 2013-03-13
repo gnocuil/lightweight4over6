@@ -17,7 +17,7 @@ fi
 echo Loading lw4over6 module...
 
 insmod lw4over6.ko
-ifconfig lw4over6 up
+ifconfig 4over6 up
 #-------------------------------------------------------
 
 ./ioctl -a $TC_IPV6_ADDRESS $TI_IPV6_ADDRESS

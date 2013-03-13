@@ -5,7 +5,7 @@
 #define TUNNEL_INFO 2
 #define TUNNEL_SET_MTU 3
 
-#define TUNNEL_DEVICE_NAME "lw4over6"
+#define TUNNEL_DEVICE_NAME "4over6"
 #define TUNNELMESSAGE SIOCDEVPRIVATE
 
 #define TUNNELPORTSET SIOCDEVPRIVATE+1//set port set mask and index to support ping (icmp).
