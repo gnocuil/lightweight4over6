@@ -24,6 +24,7 @@ int comp_string(unsigned char *source,unsigned char *dest,int size)
 
 int mask_bits_pset(unsigned short mask)
 {
+	if (mask == 0) return 0;
 	int result = 16;
 	while(mask && (mask & 1) == 0){
 		--result;

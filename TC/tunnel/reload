@@ -1,5 +1,5 @@
 #!/bin/bash
 
 
-$CURDIR/unload
-$CURDIR/load
+./unload
+./load
