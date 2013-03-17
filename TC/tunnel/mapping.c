@@ -160,6 +160,14 @@ static struct ecitem* lw4over6_ecitem_lookup_pset(struct net_device *dev, struct
 //set ecitem: add or modify; invoke the new lookup func.
 void lw4over6_ecitem_set(struct net_device *dev,struct ecitem *pect)
 {
+   int i;
+   pect->local6zero = 1;
+   for (i = 0; i < 16; ++i)
+       if (pect->local6.s6_addr[i]) {
+           pect->local6zero = 0;
+           break;
+       }
+           
    struct ecitem *p;
    p=lw4over6_ecitem_lookup_pset(dev,&pect->remote, pect->pset_index, pect->pset_mask);//pset
    if(!p)
@@ -167,7 +175,8 @@ void lw4over6_ecitem_set(struct net_device *dev,struct ecitem *pect)
    else//modify the ecitem
    {   
        write_lock_bh(&lw4over6_lock);
-       p->remote6=pect->remote6;
+       p->remote6 = pect->remote6;
+       p->local6 = pect->local6;
 	   write_unlock_bh(&lw4over6_lock);
        kfree(pect);
    }

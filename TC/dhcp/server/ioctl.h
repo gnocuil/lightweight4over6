@@ -5,7 +5,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 
-#define TUNNEL_DEVICE_NAME "lw4over6"
+#define TUNNEL_DEVICE_NAME "4over6"
 
 #define TUNNELMESSAGE SIOCDEVPRIVATE
 #define TUNNEL_MAPPING_NUM SIOCDEVPRIVATE+1//get the num of ecitems
@@ -23,6 +23,7 @@ struct ecitem
 {  
    struct in_addr remote;
    struct in6_addr remote6,local6;
+   int local6zero;//whether local6 is zero, should not be used in dhcp server
    unsigned short pset_index, pset_mask; //pset
    struct timeval start_time;
    int seconds;//lease time limit
@@ -31,7 +32,7 @@ struct ecitem
    int tag;//if tag==1,then this is manual,if tag==2,then this is auto.
    struct ecitem *next; 
 };
-void set_mapping(struct in_addr remote,struct in6_addr remote6, struct iaddr_pset ip_pset)
+void set_mapping(struct in_addr remote,struct in6_addr remote6, struct in6_addr local6, struct iaddr_pset ip_pset)
 {
     struct ecitem itm;
     struct ifreq req;
@@ -46,6 +47,7 @@ void set_mapping(struct in_addr remote,struct in6_addr remote6, struct iaddr_pse
     memset(&itm,0,sizeof(struct ecitem));
     itm.remote=remote;
     itm.remote6=remote6;
+    itm.local6=local6;
     itm.pset_index = ip_pset.pset_index;
     itm.pset_mask = ip_pset.pset_mask;
     itm.tag=2;//manual type,so we should do adjustment for the specified manual mapping item.
@@ -53,9 +55,10 @@ void set_mapping(struct in_addr remote,struct in6_addr remote6, struct iaddr_pse
     memset(&req,0,sizeof(struct ifreq));
     strcpy(req.ifr_name,TUNNEL_DEVICE_NAME);
     req.ifr_data=(caddr_t)&itm;//mapping item
+    printf("set_mapping! index=%x mask=%x\n", itm.pset_index, itm.pset_mask);
     if(ioctl(sock,TUNNEL_SET_MAPPING,&req)<0)
     {
-        printf("can't send ioctl message TUNNEL_SET_MAPPING!\n");
+        fprintf(stderr, "can't send ioctl message TUNNEL_SET_MAPPING!\n");
         return ;
     }
     close(sock);

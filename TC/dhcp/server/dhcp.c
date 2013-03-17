@@ -308,7 +308,7 @@ dhcp (struct packet *packet) {
 void dhcpdiscover (packet, ms_nulltp)
 	struct packet *packet;
 	int ms_nulltp;
-{
+{puts("dhcpdiscover");
 	struct lease *lease = (struct lease *)0;
 	char msgbuf [1024]; /* XXX */
 	TIME when;
@@ -320,7 +320,7 @@ void dhcpdiscover (packet, ms_nulltp)
 
 	/* [pset] check whether option 55 contains port set option */
 	findPsetInOption55(packet);
-	
+printf("dhcp.c line 323...\n");
 	find_lease (&lease, packet, packet -> shared_network,
 		    0, &peer_has_leases, (struct lease *)0, MDL);
 	printf("dhcpdiscover after find_lease: lease=%x mask=%x\n", (int)lease, lease?lease->ip_pset.pset_mask:0);//[pset]temp
@@ -387,12 +387,12 @@ void dhcpdiscover (packet, ms_nulltp)
 		}
 	}
 #endif
-
+printf("dhcp.c line 390...\n");
 	/* If we didn't find a lease, try to allocate one... */
-	if (!lease) {
+	if (!lease) {printf("allocate...\n");
 		if (!allocate_lease (&lease, packet,
 				     packet -> shared_network -> pools, 
-				     &peer_has_leases)) {
+				     &peer_has_leases)) {printf("no leases...\n");
 			if (peer_has_leases)
 				log_error ("%s: peer holds all free leases",
 					   msgbuf);
@@ -3127,7 +3127,8 @@ void dhcp_reply (lease)
 	unsigned packet_length;
 	struct dhcp_packet raw;
 	struct sockaddr_in to;
-      struct sockaddr_in6 to4v6;
+    struct sockaddr_in6 to4v6;
+    struct sockaddr_in6 from4v6;
 	struct in_addr from;
 	struct hardware hto;
 	int result;
@@ -3144,13 +3145,15 @@ void dhcp_reply (lease)
 	memset (&raw, 0, sizeof raw);
 	memset (&d1, 0, sizeof d1);
 
-      memset (&to4v6, 0, sizeof to4v6);
-      if (local_family == AF_MAX)
-      {
-           memcpy(&to4v6.sin6_addr, state->packet->client_addr.iabuf, state->packet->client_addr.len);
-           to4v6.sin6_family = AF_INET6;
-           to4v6.sin6_port = state->packet->client_port;
-      }
+    memset (&to4v6, 0, sizeof to4v6);
+    memset (&from4v6, 0, sizeof from4v6);
+    if (local_family == AF_MAX) {
+        memcpy(&to4v6.sin6_addr, state->packet->client_addr.iabuf, state->packet->client_addr.len);
+        to4v6.sin6_family = AF_INET6;
+        to4v6.sin6_port = state->packet->client_port;
+        memcpy(&from4v6.sin6_addr, state->packet->local_addr6.iabuf, state->packet->local_addr6.len);
+        from4v6.sin6_family = AF_INET6;
+    }
 
 	/* Copy in the filename if given; otherwise, flag the filename
 	   buffer as available for options. */
@@ -3350,7 +3353,7 @@ void dhcp_reply (lease)
             {
                 inet_ntop(AF_INET6,&to4v6.sin6_addr,abuf, sizeof(abuf));
                 log_info("Bind %s to %s", inet_ntoa(raw.yiaddr),abuf);
-                set_mapping(raw.yiaddr,to4v6.sin6_addr,lease->ip_pset);
+                set_mapping(raw.yiaddr,to4v6.sin6_addr,from4v6.sin6_addr,lease->ip_pset);
             }
             result = send_packet6(state->ip,
                         (unsigned char *)&raw, packet_length, &to4v6);

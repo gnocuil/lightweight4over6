@@ -3799,10 +3799,11 @@ packet6_len_okay(const char *packet, int len) {
 }
 
 #ifdef DHCPv6
-void do_packet4v6 (interface, packet, len, from_port, from, was_unicast)
+void do_packet4v6 (interface, packet, len, to, from_port, from, was_unicast)
 	struct interface_info *interface;
 	struct dhcp_packet *packet;
 	unsigned len;
+	struct iaddr to;
 	unsigned int from_port;
 	struct iaddr from;
 	isc_boolean_t was_unicast;
@@ -3825,6 +3826,7 @@ void do_packet4v6 (interface, packet, len, from_port, from, was_unicast)
 	}
 	decoded_packet -> raw = packet;
 	decoded_packet -> packet_length = len;
+	decoded_packet -> local_addr6 = to;
 	decoded_packet -> client_port = from_port;
 	decoded_packet -> client_addr = from;
 	interface_reference (&decoded_packet -> interface, interface, MDL);

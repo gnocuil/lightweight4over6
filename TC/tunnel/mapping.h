@@ -19,7 +19,7 @@ struct ecitem
 {  
    struct in_addr remote;
    struct in6_addr remote6,local6;
-
+   int local6zero;//whether local6 is zero
    unsigned short pset_index, pset_mask; //pset
 
    struct timeval start_time;

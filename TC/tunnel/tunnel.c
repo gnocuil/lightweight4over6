@@ -288,7 +288,6 @@ struct in6_addr* get_ipv6_addr(char ifname[])
 */
 int lw4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
 {
- 
     struct iphdr *iph;
     struct in6_addr src_addr,out_addr;
     struct in_addr daddr,saddr;
@@ -329,11 +328,14 @@ int lw4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
     {
        ect->inbound_bytes+=skb->len;
        ect->in_pkts++;
-       src_addr=pinfo->local6;
+       if (ect->local6zero)
+           src_addr=pinfo->local6;
+       else
+           src_addr=ect->local6;
        out_addr=ect->remote6;
     }
     else 
-    {   
+    {   printk("<7>xmit!   no ect\n");
         CDBG("lw4over6_tunnel_xmit: Can not find corresponding ipv6 destination in ECT!\n");            
         goto tx_error;
     }   
@@ -723,7 +725,7 @@ static inline void ip6ip_ecn_decapsulate(struct net_device* dev, struct ipv6hdr 
 
 int lw4over6_rcv(struct sk_buff *skb)
 {
- 
+    printk("<7>lw4over6_rcv: receive!\n");
     struct ipv6hdr *ipv6h;
     struct iphdr *iph;
     int err;

@@ -441,13 +441,15 @@ main(int argc, char **argv) {
 					   "record interface", argv [i],
 					   isc_result_totext (result));
 			strcpy (tmp -> name, argv [i]);
-			if (interfaces) {
+			printf("interface: %s\n", tmp->name);
+			if (interfaces) {printf("\t insert\n");
 				interface_reference (&tmp -> next,
 						     interfaces, MDL);
 				interface_dereference (&interfaces, MDL);
 			}
 			interface_reference (&interfaces, tmp, MDL);
 			tmp -> flags = INTERFACE_REQUESTED;
+			
 		}
 	}
 

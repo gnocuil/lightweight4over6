@@ -389,6 +389,9 @@ struct packet {
 	/* DHCPv6 packet containing this one, or NULL if none */
 	struct packet *dhcpv6_container_packet;
 
+    /* Local IPv6 address */
+    struct iaddr local_addr6;
+    
 	int options_valid;
 	int client_port;
 	struct iaddr client_addr;
@@ -1863,7 +1866,7 @@ void do_packet (struct interface_info *,
 		struct dhcp_packet *, unsigned,
 		unsigned int, struct iaddr, struct hardware *);
 void do_packet4v6(struct interface_info *,
-		struct dhcp_packet *, unsigned,
+		struct dhcp_packet *, unsigned, struct iaddr,
 		unsigned int, struct iaddr, isc_boolean_t);
 void do_packet6(struct interface_info *, const char *,
 		int, int, const struct iaddr *, isc_boolean_t);
@@ -2585,7 +2588,7 @@ extern void (*bootp_packet_handler) (struct interface_info *,
 				     unsigned int,
 				     struct iaddr, struct hardware *);
 extern void (*dhcp4v6_packet_handler)(struct interface_info *,
-				     struct dhcp_packet *, unsigned,
+				     struct dhcp_packet *, unsigned, struct iaddr,
 				     unsigned int, 
 				     struct iaddr, isc_boolean_t);
 extern void (*dhcpv6_packet_handler)(struct interface_info *,

@@ -5,7 +5,7 @@
 
 #define TUNNEL_SET 1
 
-#define TUNNEL_DEVICE_NAME "lw4over6"
+#define TUNNEL_DEVICE_NAME "4over6"
 #define TUNNEL_BIND_IFACE "eth0"//default binded interface.
 
 #define TUNNELMESSAGE SIOCDEVPRIVATE

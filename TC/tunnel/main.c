@@ -49,7 +49,7 @@ void display_tc_mapping_table()
    struct ecitem *pecitem;
    char *wday[]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
    struct tm  *p;
-   char addr[INET_ADDRSTRLEN],addr6[INET6_ADDRSTRLEN];
+   char addr[INET_ADDRSTRLEN],addr6[INET6_ADDRSTRLEN],addr6_local[INET6_ADDRSTRLEN];
    sock=socket(AF_INET,SOCK_RAW,IPPROTO_RAW);//raw socket in order to interact with tunnel
    if (sock<0)
    {
@@ -69,7 +69,7 @@ void display_tc_mapping_table()
    printf("TC has %d mapping item(s) in total!\n",mapping_num);
    if(mapping_num>0)
    {
-   printf("%-16s%-25s%-15s%-20s%-22s%-10s%-10s%-10s%-10s%-10s","TI IPv4","TI IPv6","Port-Set Index","Port-Set Mask","Start Time","Time Lmt","InPkts","InBytes","OutPkts","OutBytes");
+   printf("%-16s%-25s%-25s%-15s%-20s%-22s%-10s%-10s%-10s%-10s%-10s","TI IPv4","TI IPv6","TC IPv6","Port-Set Index","Port-Set Mask","Start Time","Time Lmt","InPkts","InBytes","OutPkts","OutBytes");
    printf("%-10s\n","MapType");
    //we will alloc memory for the ecitems which are to be displayed.
    pecitem=(struct ecitem*)malloc(mapping_num*sizeof(struct ecitem));
@@ -89,8 +89,9 @@ void display_tc_mapping_table()
    {
       inet_ntop(AF_INET,(void*)&pecitem[i].remote,addr,INET_ADDRSTRLEN);
       inet_ntop(AF_INET6,(void*)&pecitem[i].remote6,addr6,INET6_ADDRSTRLEN);
+      inet_ntop(AF_INET6,(void*)&pecitem[i].local6,addr6_local,INET6_ADDRSTRLEN);
       p=(struct tm*)localtime(&(pecitem[i].start_time.tv_sec));
-      printf("%-16s%-25s0x%-15.04x0x%-15.04x%-4d/%-2d/%-2d",addr,addr6,pecitem[i].pset_index,pecitem[i].pset_mask,(1900+p->tm_year),(1+p->tm_mon),p->tm_mday); 
+      printf("%-16s%-25s%-25s0x%-15.04x0x%-15.04x%-4d/%-2d/%-2d",addr,addr6,addr6_local,pecitem[i].pset_index,pecitem[i].pset_mask,(1900+p->tm_year),(1+p->tm_mon),p->tm_mday); 
       printf("%-3s%-2d:%-2d:%-3d%-10d",wday[p->tm_wday],p->tm_hour,p->tm_min,p->tm_sec,pecitem[i].seconds);
       printf("%-10lld%-10lld%-10lld%-10lld",pecitem[i].in_pkts,pecitem[i].inbound_bytes,pecitem[i].out_pkts,pecitem[i].outbound_bytes);
       //for mapping type display.

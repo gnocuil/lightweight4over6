@@ -73,7 +73,7 @@ void (*dhcpv6_packet_handler)(struct interface_info *,
 			      int, const struct iaddr *,
 			      isc_boolean_t);
 void (*dhcp4v6_packet_handler)(struct interface_info *,
-			      struct dhcp_packet *, unsigned,
+			      struct dhcp_packet *, unsigned, struct iaddr,
 			      unsigned int,
 			      struct iaddr,
 			      isc_boolean_t);
@@ -1590,6 +1590,7 @@ got_one_4v6(omapi_object_t *h) {
 	struct sockaddr_in6 from;
 	struct in6_addr to;
 	struct iaddr ifrom;
+	struct iaddr ito;
 	int result;
 	char buf[65536];	/* maximum size for a UDP packet is 65536 */
 	struct interface_info *ip;
@@ -1607,6 +1608,9 @@ got_one_4v6(omapi_object_t *h) {
 		log_error("receive_packet6() failed on %s: %m", ip->name);
 		return ISC_R_UNEXPECTED;
 	}
+	char addr6[100] = {0};
+	inet_ntop(AF_INET6,(void*)&to,addr6,INET6_ADDRSTRLEN);
+	printf("got_one_4v6!!!   local_addr6=%s\n", addr6);
 
 	/* 0 is 'any' interface. */
 	if (if_idx == 0)
@@ -1624,7 +1628,9 @@ got_one_4v6(omapi_object_t *h) {
 
 		ifrom.len = 16;
 		memcpy(ifrom.iabuf, &from.sin6_addr, ifrom.len);
-
+        ito.len = 16;
+        memcpy(ito.iabuf, to.s6_addr, ito.len);
+        
 		/* Seek forward to find the matching source interface. */
 		ip = interfaces;
 		while ((ip != NULL) && (if_nametoindex(ip->name) != if_idx))
@@ -1634,7 +1640,7 @@ got_one_4v6(omapi_object_t *h) {
 			return ISC_R_NOTFOUND;
 
 		(*dhcp4v6_packet_handler)(ip, (struct dhcp_packet*)buf, 
-					 result, from.sin6_port, 
+					 result, ito, from.sin6_port, 
 					 ifrom, is_unicast);
 	}
 
