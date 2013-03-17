@@ -32,6 +32,57 @@ struct ecitem
    int tag;//if tag==1,then this is manual,if tag==2,then this is auto.
    struct ecitem *next; 
 };
+
+
+int route_add(struct in_addr remote)
+{
+    int skfd;
+    struct rtentry rt;
+
+    struct sockaddr_in dst;
+    //struct sockaddr_in gw;
+    struct sockaddr_in genmask;
+
+    bzero(&genmask,sizeof(struct sockaddr_in));
+    genmask.sin_family = AF_INET;
+    genmask.sin_addr.s_addr = inet_addr("255.255.255.255");
+
+    bzero(&dst,sizeof(struct sockaddr_in));
+    dst.sin_family = AF_INET;
+    dst.sin_addr = remote;
+
+    memset(&rt, 0, sizeof(rt));
+
+    rt.rt_dst = *(struct sockaddr*) &dst;
+    rt.rt_genmask = *(struct sockaddr*) &genmask;
+
+    skfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if(ioctl(skfd, SIOCDELRT, &rt) < 0) 
+    {
+        //printf("Error route del :%m\n", errno);
+        //return -1;
+    }
+
+    memset(&rt, 0, sizeof(rt));
+
+    rt.rt_metric = 0;
+  
+    rt.rt_dst = *(struct sockaddr*) &dst;
+    rt.rt_genmask = *(struct sockaddr*) &genmask;
+
+    rt.rt_dev = TUNNEL_DEVICE_NAME;
+    rt.rt_flags = RTF_UP;
+
+    //skfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if(ioctl(skfd, SIOCADDRT, &rt) < 0) 
+    {
+        //printf("Error route add :%m\n", errno);
+        return -1;
+    }
+    return 0;
+}
+
+
 void set_mapping(struct in_addr remote,struct in6_addr remote6, struct in6_addr local6, struct iaddr_pset ip_pset)
 {
     struct ecitem itm;
@@ -62,5 +113,6 @@ void set_mapping(struct in_addr remote,struct in6_addr remote6, struct in6_addr 
         return ;
     }
     close(sock);
+    route_add(remote);
 }
 #endif
