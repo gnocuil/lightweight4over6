@@ -476,7 +476,7 @@ if_register6(struct interface_info *info, int do_multicast) {
 	/* Bounce do_multicast to a stack variable because we may change it. */
 	int req_multi = do_multicast;
 
-	if (global_v6_socket_references == 0) {
+	if (1 || global_v6_socket_references == 0) {/* support multi devices in dhcp 4over6*/
 		global_v6_socket = if_register_socket(info, AF_INET6,
 						      &req_multi);
 		if (global_v6_socket < 0) {
