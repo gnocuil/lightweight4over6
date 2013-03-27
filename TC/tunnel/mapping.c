@@ -41,8 +41,8 @@ struct ecitem* lw4over6_ecitem_lookup(struct net_device *dev,struct in_addr *rem
    //unsigned key0=HASH(h0);//hash func should be changed
    unsigned key0;
    struct lw4over6_tunnel_private *priv=netdev_priv(dev);
-/***bits change from 16 to 1 to find the hashed ecitem*/
-   while(bits > 0){
+/***bits change from 16 to 0 to find the hashed ecitem*/
+   while(bits >= 0){
 	key0 = HASH(h0, bits, portNum);
    	read_lock_bh(&lw4over6_lock);
    	for(t=priv->ectables[key0];t && remote ;t=t->next)
