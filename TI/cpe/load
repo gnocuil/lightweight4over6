@@ -19,29 +19,18 @@ fi
 #fi
 
 
-echo Loading lw4over6 module...
+echo Loading 4over6 module...
 
-ip -6 tunnel add lw4over6 mode ip4ip6 remote $TC_IPV6_ADDRESS local $TI_IPV6_ADDRESS
-ifconfig lw4over6 up
+ip -6 tunnel add 4over6 mode ip4ip6 remote $TC_IPV6_ADDRESS local $TI_IPV6_ADDRESS
+ifconfig 4over6 up
 
 #ip addr add $TI_IPV6_ADDRESS/64 dev $INTERFACE
 #ip route add ::/0 dev $INTERFACE
-ip route add default dev lw4over6
+#ip route add default dev lw4over6
 echo "remote ipv6 address : $TC_IPV6_ADDRESS"
 echo "local  ipv6 address : $TI_IPV6_ADDRESS"
 #echo "ipv6 device : $INTERFACE"
 
 sysctl net.ipv4.ip_forward=1
+iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
 #--------------------------------------------------------------
-
-
-
-
-
-
-
- 
-
-
-
-
