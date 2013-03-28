@@ -320,10 +320,9 @@ void dhcpdiscover (packet, ms_nulltp)
 
 	/* [pset] check whether option 55 contains port set option */
 	findPsetInOption55(packet);
-printf("dhcp.c line 323...\n");
 	find_lease (&lease, packet, packet -> shared_network,
 		    0, &peer_has_leases, (struct lease *)0, MDL);
-	printf("dhcpdiscover after find_lease: lease=%x mask=%x\n", (int)lease, lease?lease->ip_pset.pset_mask:0);//[pset]temp
+//	printf("dhcpdiscover after find_lease: lease=%x mask=%x\n", (int)lease, lease?lease->ip_pset.pset_mask:0);//[pset]temp
 	if (lease && lease -> client_hostname) {
 		if ((strlen (lease -> client_hostname) <= 64) &&
 		    db_printable((unsigned char *)lease->client_hostname))
@@ -403,7 +402,7 @@ printf("dhcp.c line 390...\n");
 			return;
 		}
 	}
-printf("allocated lease=%x ip=%s\n", (int)lease, piaddr(lease->ip_pset.ip_addr));
+//printf("allocated lease=%x ip=%s\n", (int)lease, piaddr(lease->ip_pset.ip_addr));
 #if defined (FAILOVER_PROTOCOL)
 	if (lease && lease -> pool && lease -> pool -> failover_peer) {
 		peer = lease -> pool -> failover_peer;
@@ -3633,7 +3632,7 @@ int find_lease (struct lease **lp,
 		log_info ("Found lease for client id: %s.",
 		      piaddr (uid_lease -> ip_addr));
 #endif
-printf("\tfind_lease: uid_lease=%x\n", (int)uid_lease);
+//printf("\tfind_lease: uid_lease=%x\n", (int)uid_lease);
 	/* Find a lease whose hardware address matches, whose client
 	 * identifier matches (or equally doesn't have one), that's
 	 * permitted, and that's on the correct subnet.
@@ -3644,7 +3643,7 @@ printf("\tfind_lease: uid_lease=%x\n", (int)uid_lease);
 	h.hlen = packet -> raw -> hlen + 1;
 	h.hbuf [0] = packet -> raw -> htype;
 	memcpy (&h.hbuf [1], packet -> raw -> chaddr, packet -> raw -> hlen);
-	find_lease_by_hw_addr (&hw_lease, h.hbuf, h.hlen, MDL);printf("\tfind_lease: hw_lease=%x ", (int)hw_lease);if(hw_lease)printf("ip=%s", piaddr(hw_lease->ip_addr));printf("\n");
+	find_lease_by_hw_addr (&hw_lease, h.hbuf, h.hlen, MDL);//printf("\tfind_lease: hw_lease=%x ", (int)hw_lease);if(hw_lease)printf("ip=%s", piaddr(hw_lease->ip_addr));printf("\n");
 	while (hw_lease) {
 #if defined (DEBUG_FIND_LEASE)
 		log_info ("trying next lease matching hw addr: %s",
@@ -3742,7 +3741,7 @@ printf("\tfind_lease: uid_lease=%x\n", (int)uid_lease);
 			find_lease_by_ip_addr (&ip_lease, cip, MDL);
 		else
 			find_lease_by_ip_pset (&ip_lease, cip_pset, MDL);
-	}printf("\tip_lease=%x ", (int)ip_lease);if (ip_lease) printf("ip=%s", piaddr(ip_lease->ip_addr));printf("\n");
+	}//printf("\tip_lease=%x ", (int)ip_lease);if (ip_lease) printf("ip=%s", piaddr(ip_lease->ip_addr));printf("\n");
 
 #if defined (DEBUG_FIND_LEASE)
 	if (ip_lease)
