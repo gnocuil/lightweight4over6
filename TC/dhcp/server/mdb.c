@@ -714,7 +714,7 @@ int find_host_for_network (struct subnet **sp, struct host_decl **host,
 	}
 	return 0;
 }
-
+/*
 void print_shared_network(struct shared_network *sn)
 {
 	printf("---------------print_shared_network : 0x%x---------------\n", (int)sn);
@@ -727,7 +727,7 @@ void print_shared_network(struct shared_network *sn)
 	}
 	printf("---------------print_shared_network over---------------\n");
 }
-
+*/
 void new_address_range (cfile, low, high, subnet, pool, lpchain)
 	struct parse *cfile;
 	struct iaddr low, high;
