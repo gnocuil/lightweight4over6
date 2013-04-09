@@ -4,9 +4,9 @@
 echo Loading 4over6 module...
 insmod lw4over6.ko
 ifconfig 4over6 up
-#ip addr add 58.205.200.1/24 broadcast 58.205.200.255 dev lw4over6
-#ip addr add 192.168.1.100/24 broadcast 192.168.1.255 dev lw4over6
-ip addr add 10.105.244.1/24 broadcast 10.105.244.255 dev lw4over6
+#ip addr add 58.205.200.1/24 broadcast 58.205.200.255 dev 4over6
+#ip addr add 192.168.1.100/24 broadcast 192.168.1.255 dev 4over6
+ip addr add 10.105.244.1/24 broadcast 10.105.244.255 dev 4over6
 
 dmesg -c
 sysctl net.ipv4.ip_forward=1

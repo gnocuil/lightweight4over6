@@ -26,7 +26,7 @@ ifconfig 4over6 up
 
 #ip addr add $TI_IPV6_ADDRESS/64 dev $INTERFACE
 #ip route add ::/0 dev $INTERFACE
-#ip route add default dev lw4over6
+#ip route add default dev 4over6
 echo "remote ipv6 address : $TC_IPV6_ADDRESS"
 echo "local  ipv6 address : $TI_IPV6_ADDRESS"
 #echo "ipv6 device : $INTERFACE"
