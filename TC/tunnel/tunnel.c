@@ -335,7 +335,7 @@ int lw4over6_tunnel_xmit(struct sk_buff *skb,struct net_device *dev)
        out_addr=ect->remote6;
     }
     else 
-    {   printk("<7>xmit!   no ect\n");
+    {   
         CDBG("lw4over6_tunnel_xmit: Can not find corresponding ipv6 destination in ECT!\n");            
         goto tx_error;
     }   
@@ -725,7 +725,6 @@ static inline void ip6ip_ecn_decapsulate(struct net_device* dev, struct ipv6hdr 
 
 int lw4over6_rcv(struct sk_buff *skb)
 {
-    printk("<7>lw4over6_rcv: receive!\n");
     struct ipv6hdr *ipv6h;
     struct iphdr *iph;
     int err;
