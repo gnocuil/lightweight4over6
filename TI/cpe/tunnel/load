@@ -26,15 +26,3 @@ echo "local  ipv6 address : $TI_IPV6_ADDRESS"
 
 sysctl net.ipv4.ip_forward=1
 #--------------------------------------------------------------
-
-
-
-
-
-
-
- 
-
-
-
-

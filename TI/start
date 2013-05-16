@@ -1,7 +1,6 @@
 #!/bin/sh
 
-#PHYSIC_IPV6_DEVICE="eth0"
-DHCP_CLIENT_DEVICE="lw4over6"
+DHCP_CLIENT_DEVICE="4over6"
 
 LOCAL_IPV6_ADDR="2001:da8:bf:19::7"
 REMOTE_IPV6_ADDR="2001:da8:bf:19::3"
@@ -12,7 +11,7 @@ cd cpe/tunnel
 ./load $REMOTE_IPV6_ADDR $LOCAL_IPV6_ADDR
 cd $CURDIR
 
-./cra/cra -a $LOCAL_IPV6_ADDR $REMOTE_IPV6_ADDR &
+nohup ./cra/cra -a $LOCAL_IPV6_ADDR $REMOTE_IPV6_ADDR &
 
 cd dhcpcd
 ./dhcpcd $DHCP_CLIENT_DEVICE
