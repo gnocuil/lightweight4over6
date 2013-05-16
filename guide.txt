@@ -1,0 +1,51 @@
+Tsinghua University Lightweight4over6 Guide
+v0.21
+
+1. Introduction
+
+TC - lwAFTR & DHCPv4-over-IPv6 Server 
+	Components: DHCP Server (Based on isc-dhcp 4.2.3); Tunnel Module
+TI - lwB4 & DHCPv4-over-IPv6 Client
+	Components: DHCP Client (Based on dhcpcd 5.2.10); CRA; Tunnel Module
+
+Tunnel modules in both TC & TI are kernel modules based on linux kernel 2.6.32.
+
+The codes in TC/ and TI/ should run in two different linux 2.6.32 hosts. Global IPv6 address should be configured in both hosts.
+
+2. TC Configuration
+
+2.1 Set up tunnel module
+
+In the directory of TC/tunnel:
+	make
+	sudo ./load
+	
+TC/tunnel/load is the load script. It will set up a virtual interface named "4over6". Modify the IPv4 address in it if necessary.
+TC/tunnel/unload is the unload script.
+
+2.2 Run DHCP Server
+
+In the directory of TC/dhcp:
+	./configure
+	make
+	
+TC/dhcp/server/dhcpd.conf is a sample configure file contains 58.205.200.0/24. The port set mask is 0xF800, so each client will get 2048 ports.
+TC/dhcp/server/open4v6.sh is a sample load script of dhcp server.
+	"-4v6" indicates DHCPv4-over-IPv6 mode;
+	"-4v6interface 4over6" indicates each IPv4 address to be allocated must be in the same subnet with 4over6's IPv4 address. You can change it to "-4v6interface eth0" if you like.
+	"eth1" is the real interface DHCP Server listens on.
+	
+3. TI Configuration
+
+3.1 Compile
+
+In the directory of TI/:
+	make
+	
+3.2 Run
+
+TI/start is the load script. Modify "LOCAL_IPV6_ADDR" and "REMOTE_IPV6_ADDR" to actual addresses.
+
+In the directory of TI/:
+	sudo ./start
+
