@@ -79,6 +79,7 @@ int route_add(struct in_addr remote)
         //printf("Error route add :%m\n", errno);
         return -1;
     }
+    close(skfd);
     return 0;
 }
 
